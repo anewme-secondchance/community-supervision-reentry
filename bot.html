@@ -198,10 +198,10 @@ function startListening() {
 /* ROUTING */
 function routeUser(message) {
 
-    if (message.includes("overwhelmed") || message.includes("stressed")) {
-        speak("Take a breath. You are not alone. Do you need housing, a job, or ID help?");
-        return;
-    }
+ if (message.includes("overwhelmed") || message.includes("stressed")) {
+    speak("I can help you find the right section. Do you need housing, a job, or ID help?");
+    return;
+}
 
     if (message.includes("job") || message.includes("work")) {
         speak("Let’s get you working again.", "employment.html");
