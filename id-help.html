@@ -223,37 +223,278 @@ Start the process immediately — do not wait on the prison.
 
 </div>
 
-<script>
-function goBack() {
-  if (window.history.length > 1) {
-    window.history.back();
+<script type="module">
+
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+
+import {
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA4O2nEtjdy9fSh66gnHH6jsbKKSWdJt4c",
+  authDomain: "a-new-me-1a17a.firebaseapp.com",
+  projectId: "a-new-me-1a17a",
+  storageBucket: "a-new-me-1a17a.firebasestorage.app",
+  messagingSenderId: "362235516132",
+  appId: "1:362235516132:web:1465c3ec03ce1d3f4608f1"
+};
+
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+
+
+/* =========================
+   AUTH
+========================= */
+
+onAuthStateChanged(auth, async (user) => {
+
+  if (!user) {
+    window.location.href = "auth.html";
     return;
   }
-  window.location.href = 'index.html';
+
+  currentUser = user;
+
+  await loadChecklist();
+
+});
+
+
+/* =========================
+   FIREBASE REFERENCE
+========================= */
+
+function checklistRef() {
+
+  return doc(
+    db,
+    "users",
+    currentUser.uid,
+    "idHelp",
+    "checklist"
+  );
+
 }
 
-function saveChecklist() {
-  const checkboxes = document.querySelectorAll("input[type='checkbox']");
-  const states = [];
 
-  checkboxes.forEach((box) => {
-    states.push(box.checked);
-  });
+/* =========================
+   GET CHECKBOXES
+========================= */
 
-  localStorage.setItem('idChecklist', JSON.stringify(states));
-  document.getElementById('checkMessage').innerText = `Checklist saved at ${new Date().toLocaleTimeString()}.`;
+function getCheckboxes() {
+
+  return Array.from(
+    document.querySelectorAll(
+      "input[type='checkbox']"
+    )
+  );
+
 }
 
-window.onload = function() {
-  const saved = JSON.parse(localStorage.getItem('idChecklist'));
-  if (saved) {
-    const checkboxes = document.querySelectorAll("input[type='checkbox']");
-    checkboxes.forEach((box, index) => {
-      box.checked = saved[index] || false;
-    });
-    document.getElementById('checkMessage').innerText = 'Loaded your saved checklist from this device.';
+
+/* =========================
+   SAVE CHECKLIST
+========================= */
+
+window.saveChecklist =
+async function() {
+
+  if (!currentUser) return;
+
+
+  const checkboxes =
+    getCheckboxes();
+
+
+  const states =
+    checkboxes.map(
+      box => box.checked
+    );
+
+
+  const completedCount =
+    states.filter(Boolean).length;
+
+
+  const percent =
+    Math.round(
+      (completedCount / states.length) * 100
+    );
+
+
+  try {
+
+    await setDoc(
+      checklistRef(),
+      {
+        states: states,
+
+        completedCount:
+          completedCount,
+
+        totalItems:
+          states.length,
+
+        percent:
+          percent,
+
+        completed:
+          completedCount ===
+          states.length,
+
+        updatedAt:
+          new Date().toISOString()
+      },
+      {
+        merge: true
+      }
+    );
+
+
+    document.getElementById(
+      "checkMessage"
+    ).textContent =
+      `Checklist saved. ${completedCount} of ${states.length} completed.`;
+
+
+  } catch (error) {
+
+    console.error(
+      "ID checklist save error:",
+      error
+    );
+
+
+    document.getElementById(
+      "checkMessage"
+    ).textContent =
+      "Checklist could not be saved.";
+
   }
+
 };
+
+
+/* =========================
+   LOAD CHECKLIST
+========================= */
+
+async function loadChecklist() {
+
+  if (!currentUser) return;
+
+
+  try {
+
+    const snapshot =
+      await getDoc(
+        checklistRef()
+      );
+
+
+    if (!snapshot.exists()) {
+
+      document.getElementById(
+        "checkMessage"
+      ).textContent =
+        "0 of 8 completed.";
+
+      return;
+
+    }
+
+
+    const data =
+      snapshot.data();
+
+
+    const savedStates =
+      Array.isArray(data.states)
+        ? data.states
+        : [];
+
+
+    const checkboxes =
+      getCheckboxes();
+
+
+    checkboxes.forEach(
+      (box, index) => {
+
+        box.checked =
+          savedStates[index] === true;
+
+      }
+    );
+
+
+    const completedCount =
+      checkboxes.filter(
+        box => box.checked
+      ).length;
+
+
+    document.getElementById(
+      "checkMessage"
+    ).textContent =
+      `${completedCount} of ${checkboxes.length} completed.`;
+
+
+  } catch (error) {
+
+    console.error(
+      "ID checklist load error:",
+      error
+    );
+
+
+    document.getElementById(
+      "checkMessage"
+    ).textContent =
+      "Checklist could not be loaded.";
+
+  }
+
+}
+
+
+/* =========================
+   BACK
+========================= */
+
+window.goBack =
+function() {
+
+  if (document.referrer) {
+
+    history.back();
+
+  } else {
+
+    window.location.href =
+      "index.html";
+
+  }
+
+};
+
 </script>
 
 </body>
