@@ -128,118 +128,479 @@ button {
 
 </div>
 
-<script>
-function goBack() {
-  if (window.history.length > 1) {
-    window.history.back();
+<script type="module">
+
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+
+import {
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA4O2nEtjdy9fSh66gnHH6jsbKKSWdJt4c",
+  authDomain: "a-new-me-1a17a.firebaseapp.com",
+  projectId: "a-new-me-1a17a",
+  storageBucket: "a-new-me-1a17a.firebasestorage.app",
+  messagingSenderId: "362235516132",
+  appId: "1:362235516132:web:1465c3ec03ce1d3f4608f1"
+};
+
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+
+let familyData = {
+  reunification: "",
+  trust: "",
+  tasks: []
+};
+
+
+/* =========================
+   AUTH
+========================= */
+
+onAuthStateChanged(auth, async (user) => {
+
+  if (!user) {
+    window.location.href = "auth.html";
     return;
   }
-  window.location.href = 'index.html';
-}
 
-function loadFamilyData() {
-  const saved = JSON.parse(localStorage.getItem('familyData')) || {
-    reunification: '',
-    trust: '',
-    tasks: []
-  };
+  currentUser = user;
 
-  document.getElementById('reunificationPlan').value = saved.reunification;
-  document.getElementById('trustPlan').value = saved.trust;
+  await loadFamilyData();
 
-  renderTasks(saved.tasks);
-}
+  setupFamilyInputs();
 
-function saveFamilyData(data) {
-  localStorage.setItem('familyData', JSON.stringify(data));
-}
-
-document.getElementById('reunificationPlan').addEventListener('input', function() {
-  const data = getCurrentData();
-  data.reunification = this.value;
-  saveFamilyData(data);
-  document.getElementById('planMsg').textContent = `Saved at ${new Date().toLocaleTimeString()}`;
 });
 
-document.getElementById('trustPlan').addEventListener('input', function() {
-  const data = getCurrentData();
-  data.trust = this.value;
-  saveFamilyData(data);
-  document.getElementById('trustMsg').textContent = `Saved at ${new Date().toLocaleTimeString()}`;
-});
 
-function getCurrentData() {
-  return JSON.parse(localStorage.getItem('familyData')) || {
-    reunification: '',
-    trust: '',
-    tasks: []
-  };
+/* =========================
+   FIREBASE REFERENCE
+========================= */
+
+function familyRef() {
+
+  return doc(
+    db,
+    "users",
+    currentUser.uid,
+    "family",
+    "plan"
+  );
+
 }
 
-function escapeHtml(value) {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');
+
+/* =========================
+   LOAD FAMILY DATA
+========================= */
+
+async function loadFamilyData() {
+
+  if (!currentUser) return;
+
+  try {
+
+    const snapshot =
+      await getDoc(
+        familyRef()
+      );
+
+
+    if (snapshot.exists()) {
+
+      familyData = {
+        ...familyData,
+        ...snapshot.data()
+      };
+
+    }
+
+
+    document.getElementById(
+      "reunificationPlan"
+    ).value =
+      familyData.reunification || "";
+
+
+    document.getElementById(
+      "trustPlan"
+    ).value =
+      familyData.trust || "";
+
+
+    if (!Array.isArray(familyData.tasks)) {
+      familyData.tasks = [];
+    }
+
+
+    renderTasks();
+
+  } catch (error) {
+
+    console.error(
+      "Family data load error:",
+      error
+    );
+
+  }
+
 }
 
-function addTask() {
-  const input = document.getElementById('taskInput');
-  const text = input.value.trim();
+
+/* =========================
+   SAVE FAMILY DATA
+========================= */
+
+async function saveFamilyData() {
+
+  if (!currentUser) return;
+
+  try {
+
+    await setDoc(
+      familyRef(),
+      {
+        reunification:
+          familyData.reunification || "",
+
+        trust:
+          familyData.trust || "",
+
+        tasks:
+          familyData.tasks || [],
+
+        updatedAt:
+          new Date().toISOString()
+      },
+      {
+        merge: true
+      }
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Family data save error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================
+   TEXT INPUTS
+========================= */
+
+function setupFamilyInputs() {
+
+  document.getElementById(
+    "reunificationPlan"
+  ).addEventListener(
+    "input",
+    async function() {
+
+      familyData.reunification =
+        this.value;
+
+      await saveFamilyData();
+
+      document.getElementById(
+        "planMsg"
+      ).textContent =
+        "Saved.";
+
+    }
+  );
+
+
+  document.getElementById(
+    "trustPlan"
+  ).addEventListener(
+    "input",
+    async function() {
+
+      familyData.trust =
+        this.value;
+
+      await saveFamilyData();
+
+      document.getElementById(
+        "trustMsg"
+      ).textContent =
+        "Saved.";
+
+    }
+  );
+
+}
+
+
+/* =========================
+   ADD COMMITMENT
+========================= */
+
+window.addTask =
+async function() {
+
+  if (!currentUser) return;
+
+
+  const input =
+    document.getElementById(
+      "taskInput"
+    );
+
+
+  const text =
+    input.value.trim();
+
+
   if (!text) {
-    document.getElementById('taskMsg').textContent = 'Enter a commitment first.';
+
+    document.getElementById(
+      "taskMsg"
+    ).textContent =
+      "Enter a commitment first.";
+
+    return;
+
+  }
+
+
+  familyData.tasks.push({
+    text: text,
+    completed: false
+  });
+
+
+  await saveFamilyData();
+
+
+  input.value = "";
+
+
+  document.getElementById(
+    "taskMsg"
+  ).textContent =
+    "Commitment added.";
+
+
+  renderTasks();
+
+};
+
+
+/* =========================
+   RENDER COMMITMENTS
+========================= */
+
+function renderTasks() {
+
+  const list =
+    document.getElementById(
+      "taskList"
+    );
+
+
+  list.innerHTML = "";
+
+
+  familyData.tasks.forEach(
+    (task, index) => {
+
+      const div =
+        document.createElement(
+          "div"
+        );
+
+
+      div.className =
+        "task-item" +
+        (
+          task.completed
+            ? " completed"
+            : ""
+        );
+
+
+      const span =
+        document.createElement(
+          "span"
+        );
+
+
+      span.textContent =
+        task.text || "";
+
+
+      const buttons =
+        document.createElement(
+          "div"
+        );
+
+
+      const toggleButton =
+        document.createElement(
+          "button"
+        );
+
+
+      toggleButton.type =
+        "button";
+
+
+      toggleButton.textContent =
+        task.completed
+          ? "Undo"
+          : "Done";
+
+
+      toggleButton.addEventListener(
+        "click",
+        () => {
+          toggleTask(index);
+        }
+      );
+
+
+      const deleteButton =
+        document.createElement(
+          "button"
+        );
+
+
+      deleteButton.type =
+        "button";
+
+      deleteButton.textContent =
+        "X";
+
+
+      deleteButton.addEventListener(
+        "click",
+        () => {
+          deleteTask(index);
+        }
+      );
+
+
+      buttons.appendChild(
+        toggleButton
+      );
+
+
+      buttons.appendChild(
+        deleteButton
+      );
+
+
+      div.appendChild(span);
+      div.appendChild(buttons);
+
+      list.appendChild(div);
+
+    }
+  );
+
+}
+
+
+/* =========================
+   COMPLETE / UNDO
+========================= */
+
+async function toggleTask(index) {
+
+  if (!familyData.tasks[index]) {
     return;
   }
 
-  const data = getCurrentData();
-  data.tasks.push({ text, completed: false });
 
-  saveFamilyData(data);
-  input.value = '';
-  document.getElementById('taskMsg').textContent = 'Commitment added.';
-  renderTasks(data.tasks);
+  familyData.tasks[index].completed =
+    !familyData.tasks[index].completed;
+
+
+  await saveFamilyData();
+
+  renderTasks();
+
 }
 
-function renderTasks(tasks) {
-  const list = document.getElementById('taskList');
-  list.innerHTML = '';
 
-  tasks.forEach((task, index) => {
-    const div = document.createElement('div');
-    div.className = 'task-item' + (task.completed ? ' completed' : '');
+/* =========================
+   DELETE COMMITMENT
+========================= */
 
-    div.innerHTML = `
-      <span>${escapeHtml(task.text)}</span>
-      <div>
-        <button type="button" onclick="toggleTask(${index})">
-          ${task.completed ? 'Undo' : 'Done'}
-        </button>
-        <button type="button" onclick="deleteTask(${index})">X</button>
-      </div>
-    `;
+async function deleteTask(index) {
 
-    list.appendChild(div);
-  });
+  if (!familyData.tasks[index]) {
+    return;
+  }
+
+
+  const confirmed =
+    confirm(
+      "Delete this family commitment?"
+    );
+
+
+  if (!confirmed) {
+    return;
+  }
+
+
+  familyData.tasks.splice(
+    index,
+    1
+  );
+
+
+  await saveFamilyData();
+
+  renderTasks();
+
 }
 
-function toggleTask(index) {
-  const data = getCurrentData();
-  if (!data.tasks[index]) return;
-  data.tasks[index].completed = !data.tasks[index].completed;
-  saveFamilyData(data);
-  renderTasks(data.tasks);
-}
 
-function deleteTask(index) {
-  const data = getCurrentData();
-  data.tasks.splice(index, 1);
-  saveFamilyData(data);
-  renderTasks(data.tasks);
-}
+/* =========================
+   BACK
+========================= */
 
-loadFamilyData();
+window.goBack =
+function() {
+
+  if (document.referrer) {
+
+    history.back();
+
+  } else {
+
+    window.location.href =
+      "index.html";
+
+  }
+
+};
+
 </script>
 
 </body>
