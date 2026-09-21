@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Officer Demo Access | A New Me Government</title>
+
+<style>
+:root{
+  --navy:#17345f;
+  --blue:#2457a6;
+  --light:#eef3f8;
+  --white:#ffffff;
+  --text:#1f2937;
+  --muted:#667085;
+  --border:#d8e0ea;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:var(--light);
+  color:var(--text);
+}
+
+.header{
+  background:linear-gradient(135deg,var(--navy),var(--blue));
+  color:white;
+  padding:24px 18px;
+  text-align:center;
+}
+
+.header h1{
+  margin:0 0 6px;
+  font-size:25px;
+}
+
+.header p{
+  margin:0;
+  opacity:.92;
+}
+
+.demo-banner{
+  background:#fff3cd;
+  color:#664d03;
+  border-bottom:1px solid #ffe69c;
+  padding:11px 15px;
+  text-align:center;
+  font-weight:bold;
+  font-size:14px;
+}
+
+.container{
+  max-width:560px;
+  margin:30px auto;
+  padding:0 18px 40px;
+}
+
+.card{
+  background:white;
+  padding:25px;
+  border-radius:14px;
+  box-shadow:0 5px 18px rgba(0,0,0,.09);
+}
+
+.badge{
+  display:inline-block;
+  background:#e8f0ff;
+  color:var(--navy);
+  padding:6px 10px;
+  border-radius:20px;
+  font-size:13px;
+  font-weight:bold;
+  margin-bottom:10px;
+}
+
+h2{
+  margin-top:5px;
+  color:var(--navy);
+}
+
+.intro{
+  color:var(--muted);
+  line-height:1.5;
+}
+
+label{
+  display:block;
+  margin-top:16px;
+  font-weight:bold;
+  font-size:14px;
+}
+
+input{
+  width:100%;
+  padding:12px;
+  margin-top:6px;
+  border:1px solid var(--border);
+  border-radius:8px;
+  font-size:15px;
+}
+
+input:focus{
+  outline:2px solid #b9d0f5;
+  border-color:var(--blue);
+}
+
+.login-btn{
+  width:100%;
+  background:var(--navy);
+  color:white;
+  border:none;
+  padding:14px;
+  border-radius:8px;
+  margin-top:22px;
+  font-size:16px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.login-btn:hover{
+  background:#10294d;
+}
+
+.message{
+  margin-top:15px;
+  text-align:center;
+  font-weight:bold;
+}
+
+.security-box{
+  margin-top:22px;
+  padding:15px;
+  background:#f7f9fc;
+  border:1px solid var(--border);
+  border-radius:10px;
+  font-size:13px;
+  line-height:1.55;
+  color:#475467;
+}
+
+.security-box strong{
+  color:var(--navy);
+}
+
+.back{
+  display:block;
+  text-align:center;
+  margin-top:20px;
+  color:var(--navy);
+  text-decoration:none;
+  font-weight:bold;
+}
+
+.footer{
+  text-align:center;
+  color:#667085;
+  font-size:12px;
+  margin-top:25px;
+}
+</style>
+</head>
+
+<body>
+
+<header class="header">
+  <h1>🛡️ A New Me Government</h1>
+  <p>Community Supervision & Reentry Support</p>
+</header>
+
+<div class="demo-banner">
+  DEMO MODE — Sample information only. No real client records are displayed.
+</div>
+
+<main class="container">
+
+  <section class="card">
+
+    <span class="badge">
+      Officer Demonstration
+    </span>
+
+    <h2>Officer Access</h2>
+
+    <p class="intro">
+      This demonstration shows how an authorized probation,
+      parole, or community-supervision professional could
+      access A New Me Government.
+    </p>
+
+    <label for="officerName">
+      Officer Name
+    </label>
+
+    <input
+      type="text"
+      id="officerName"
+      placeholder="Example: Officer Jordan Smith"
+      autocomplete="name"
+    >
+
+
+    <label for="agency">
+      Agency / Department
+    </label>
+
+    <input
+      type="text"
+      id="agency"
+      placeholder="Example: Community Supervision Department"
+    >
+
+
+    <label for="officerId">
+      Officer / Employee ID
+    </label>
+
+    <input
+      type="text"
+      id="officerId"
+      placeholder="Example: DEMO-1024"
+    >
+
+
+    <label for="workEmail">
+      Official Work Email
+    </label>
+
+    <input
+      type="email"
+      id="workEmail"
+      placeholder="officer@agency.gov"
+      autocomplete="email"
+    >
+
+
+    <label for="workPhone">
+      Work Phone
+    </label>
+
+    <input
+      type="tel"
+      id="workPhone"
+      placeholder="(555) 555-0100"
+      autocomplete="tel"
+    >
+
+
+    <label for="password">
+      Password
+    </label>
+
+    <input
+      type="password"
+      id="password"
+      placeholder="Demo password"
+      autocomplete="current-password"
+    >
+
+
+    <button
+      type="button"
+      class="login-btn"
+      onclick="enterDemo()">
+      Enter Officer Demo
+    </button>
+
+    <div
+      id="message"
+      class="message"
+      aria-live="polite">
+    </div>
+
+
+    <div class="security-box">
+
+      <strong>Production Security</strong><br><br>
+
+      In a live agency deployment, entering credentials would
+      not automatically provide officer access.
+
+      Officer accounts would require agency verification and
+      authorization before access to protected client
+      information is granted.
+
+      <br><br>
+
+      This page is for product demonstration purposes only.
+
+    </div>
+
+  </section>
+
+
+  <a
+    href="index.html"
+    class="back">
+    ← Return to A New Me
+  </a>
+
+
+  <div class="footer">
+    A New Me Government — Demonstration Environment
+  </div>
+
+</main>
+
+
+<script>
+
+function enterDemo(){
+
+  const officerName =
+    document.getElementById("officerName").value.trim();
+
+  const agency =
+    document.getElementById("agency").value.trim();
+
+  const officerId =
+    document.getElementById("officerId").value.trim();
+
+  const workEmail =
+    document.getElementById("workEmail").value.trim();
+
+  const workPhone =
+    document.getElementById("workPhone").value.trim();
+
+  const password =
+    document.getElementById("password").value;
+
+  const message =
+    document.getElementById("message");
+
+
+  if(
+    !officerName ||
+    !agency ||
+    !officerId ||
+    !workEmail ||
+    !workPhone ||
+    !password
+  ){
+
+    message.style.color = "#b42318";
+
+    message.textContent =
+      "Please complete all demo credential fields.";
+
+    return;
+  }
+
+
+  /*
+    DEMO ONLY
+
+    These credentials are NOT being verified
+    and are NOT being stored as real officer
+    credentials.
+
+    Production officer authentication will
+    use secure server/Firebase authorization.
+  */
+
+
+  sessionStorage.setItem(
+    "demoOfficerName",
+    officerName
+  );
+
+  sessionStorage.setItem(
+    "demoAgency",
+    agency
+  );
+
+
+  message.style.color = "#198754";
+
+  message.textContent =
+    "Demo access granted. Opening officer dashboard...";
+
+
+  setTimeout(() => {
+
+    window.location.href =
+      "officer-dashboard.html";
+
+  }, 700);
+
+}
+
+</script>
+
+</body>
+</html>
