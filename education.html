@@ -235,88 +235,359 @@ Search local trade programs at:
 
 </main>
 
-<script>
-function goBack() {
-  if (window.history.length > 1) {
-    window.history.back();
+<script type="module">
+
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+
+import {
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  deleteDoc
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA4O2nEtjdy9fSh66gnHH6jsbKKSWdJt4c",
+  authDomain: "a-new-me-1a17a.firebaseapp.com",
+  projectId: "a-new-me-1a17a",
+  storageBucket: "a-new-me-1a17a.firebasestorage.app",
+  messagingSenderId: "362235516132",
+  appId: "1:362235516132:web:1465c3ec03ce1d3f4608f1"
+};
+
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+
+
+/* =========================
+   AUTH
+========================= */
+
+onAuthStateChanged(auth, async (user) => {
+
+  if (!user) {
+    window.location.href = "auth.html";
     return;
   }
-  window.location.href = 'index.html';
-}
 
-function saveEducation() {
-  const plan = {
-    level: document.getElementById('educationLevel').value,
-    goal: document.getElementById('educationGoal').value,
-    why: document.getElementById('educationWhy').value,
-    date: document.getElementById('educationDate').value,
-    step1: document.getElementById('step1').value,
-    step2: document.getElementById('step2').value,
-    step3: document.getElementById('step3').value
-  };
+  currentUser = user;
 
-  localStorage.setItem('educationPlan', JSON.stringify(plan));
+  await loadEducation();
 
-  localStorage.setItem(
-    'educationPlanCompleted',
-    plan.goal && plan.step1 ? 'Yes' : 'No'
+});
+
+
+/* =========================
+   BACK
+========================= */
+
+window.goBack = function() {
+
+  if (document.referrer) {
+    history.back();
+  } else {
+    window.location.href = "index.html";
+  }
+
+};
+
+
+/* =========================
+   EDUCATION REFERENCE
+========================= */
+
+function educationRef() {
+
+  return doc(
+    db,
+    "users",
+    currentUser.uid,
+    "education",
+    "plan"
   );
 
-  document.getElementById('savedMessage').innerText =
-    `Education plan saved at ${new Date().toLocaleTimeString()}.`;
 }
 
-  function updateEducationDashboard() {
-  const raw = localStorage.getItem('educationPlan');
 
-  if (!raw) {
-    localStorage.setItem('educationPlanCompleted', 'No');
-    return;
+/* =========================
+   SAVE EDUCATION PLAN
+========================= */
+
+window.saveEducation =
+async function() {
+
+  if (!currentUser) return;
+
+
+  const level =
+    document.getElementById(
+      "educationLevel"
+    ).value;
+
+
+  const goal =
+    document.getElementById(
+      "educationGoal"
+    ).value.trim();
+
+
+  const why =
+    document.getElementById(
+      "educationWhy"
+    ).value.trim();
+
+
+  const date =
+    document.getElementById(
+      "educationDate"
+    ).value;
+
+
+  const step1 =
+    document.getElementById(
+      "step1"
+    ).value.trim();
+
+
+  const step2 =
+    document.getElementById(
+      "step2"
+    ).value.trim();
+
+
+  const step3 =
+    document.getElementById(
+      "step3"
+    ).value.trim();
+
+
+  const completed =
+    Boolean(goal && step1);
+
+
+  try {
+
+    await setDoc(
+      educationRef(),
+      {
+        level: level,
+        goal: goal,
+        why: why,
+        date: date,
+        step1: step1,
+        step2: step2,
+        step3: step3,
+        completed: completed,
+        updatedAt:
+          new Date().toISOString()
+      },
+      {
+        merge: true
+      }
+    );
+
+
+    document.getElementById(
+      "savedMessage"
+    ).textContent =
+      "Education plan saved.";
+
+
+  } catch (error) {
+
+    console.error(
+      "Education plan save error:",
+      error
+    );
+
+
+    document.getElementById(
+      "savedMessage"
+    ).textContent =
+      "Education plan could not be saved.";
+
   }
 
-  const plan = JSON.parse(raw);
+};
 
-  localStorage.setItem(
-    'educationPlanCompleted',
-    plan.goal && plan.step1 ? 'Yes' : 'No'
-  );
-}
-  
-function loadEducation() {
-  const raw = localStorage.getItem('educationPlan');
-  if (!raw) {
-    return;
+
+/* =========================
+   LOAD EDUCATION PLAN
+========================= */
+
+async function loadEducation() {
+
+  if (!currentUser) return;
+
+
+  try {
+
+    const snapshot =
+      await getDoc(
+        educationRef()
+      );
+
+
+    if (!snapshot.exists()) {
+      return;
+    }
+
+
+    const data =
+      snapshot.data();
+
+
+    document.getElementById(
+      "educationLevel"
+    ).value =
+      data.level || "";
+
+
+    document.getElementById(
+      "educationGoal"
+    ).value =
+      data.goal || "";
+
+
+    document.getElementById(
+      "educationWhy"
+    ).value =
+      data.why || "";
+
+
+    document.getElementById(
+      "educationDate"
+    ).value =
+      data.date || "";
+
+
+    document.getElementById(
+      "step1"
+    ).value =
+      data.step1 || "";
+
+
+    document.getElementById(
+      "step2"
+    ).value =
+      data.step2 || "";
+
+
+    document.getElementById(
+      "step3"
+    ).value =
+      data.step3 || "";
+
+
+    document.getElementById(
+      "savedMessage"
+    ).textContent =
+      "Your saved education plan is loaded.";
+
+
+  } catch (error) {
+
+    console.error(
+      "Education plan load error:",
+      error
+    );
+
   }
 
-  const saved = JSON.parse(raw);
-  document.getElementById('educationLevel').value = saved.level || '';
-  document.getElementById('educationGoal').value = saved.goal || '';
-  document.getElementById('educationWhy').value = saved.why || '';
-  document.getElementById('educationDate').value = saved.date || '';
-  document.getElementById('step1').value = saved.step1 || '';
-  document.getElementById('step2').value = saved.step2 || '';
-  document.getElementById('step3').value = saved.step3 || '';
-  document.getElementById('savedMessage').innerText = 'Loaded your previous education plan from this device.';
 }
 
-function clearEducation() {
-  document.getElementById('educationLevel').value = '';
-  document.getElementById('educationGoal').value = '';
-  document.getElementById('educationWhy').value = '';
-  document.getElementById('educationDate').value = '';
-  document.getElementById('step1').value = '';
-  document.getElementById('step2').value = '';
-  document.getElementById('step3').value = '';
 
-  localStorage.removeItem('educationPlan');
-  localStorage.setItem('educationPlanCompleted', 'No');
+/* =========================
+   CLEAR EDUCATION PLAN
+========================= */
 
-  document.getElementById('savedMessage').innerText =
-    'Education plan cleared.';
-}
-  
-loadEducation();
-updateEducationDashboard();
+window.clearEducation =
+async function() {
+
+  if (!currentUser) return;
+
+
+  const confirmed =
+    confirm(
+      "Clear your saved education plan?"
+    );
+
+
+  if (!confirmed) return;
+
+
+  try {
+
+    await deleteDoc(
+      educationRef()
+    );
+
+
+    document.getElementById(
+      "educationLevel"
+    ).value = "";
+
+    document.getElementById(
+      "educationGoal"
+    ).value = "";
+
+    document.getElementById(
+      "educationWhy"
+    ).value = "";
+
+    document.getElementById(
+      "educationDate"
+    ).value = "";
+
+    document.getElementById(
+      "step1"
+    ).value = "";
+
+    document.getElementById(
+      "step2"
+    ).value = "";
+
+    document.getElementById(
+      "step3"
+    ).value = "";
+
+
+    document.getElementById(
+      "savedMessage"
+    ).textContent =
+      "Education plan cleared.";
+
+
+  } catch (error) {
+
+    console.error(
+      "Education plan clear error:",
+      error
+    );
+
+
+    document.getElementById(
+      "savedMessage"
+    ).textContent =
+      "Education plan could not be cleared.";
+
+  }
+
+};
+
 </script>
 
 </body>
