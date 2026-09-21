@@ -299,20 +299,40 @@ document.addEventListener("DOMContentLoaded", () => {
       const q = input.value.toLowerCase();
 
       const routes = {
-        job:'employment.html',
-        resume:'resume.html',
-        housing:'housing.html',
-        id:'id-help.html',
-        money:'money.html',
-        court:'legal.html',
-        ged:'education.html',
-        family:'family.html',
-        mindset:'mindset.html',
-        motivation:'mindset.html',
-        goal:'goals.html',
-        digital:'digital-literacy.html'
-      };
+  job:'employment.html',
+  employment:'employment.html',
+  resume:'resume.html',
+  housing:'housing.html',
+  id:'id-help.html',
+  money:'money.html',
+  court:'legal.html',
+  legal:'legal.html',
+  ged:'education.html',
+  education:'education.html',
+  family:'family.html',
+  mindset:'mindset.html',
+  motivation:'mindset.html',
+  goal:'goals.html',
+  digital:'digital-literacy.html',
 
+  probation:'supervision.html',
+  parole:'supervision.html',
+  supervision:'supervision.html',
+
+  appointment:'appointments.html',
+  meeting:'appointments.html',
+
+  help:'barriers.html',
+  barrier:'barriers.html',
+
+  document:'documents.html',
+  proof:'documents.html',
+
+  dashboard:'dashboard.html',
+  progress:'dashboard.html',
+  report:'progress-report.html'
+};
+      
       for (let key in routes) {
         if (q.includes(key)) {
           location.href = routes[key];
