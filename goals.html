@@ -163,18 +163,51 @@ button.action-btn {
 </div>
 
 </div>
+<script type="module">
 
-<script>
-function goBack() {
-  if (window.history.length > 1) {
-    window.history.back();
-    return;
-  }
-  window.location.href = 'index.html';
-}
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 
-let goals = JSON.parse(localStorage.getItem('goals')) || [];
-let reentry = JSON.parse(localStorage.getItem('reentryGoals')) || {
+import {
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  orderBy
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA4O2nEtjdy9fSh66gnHH6jsbKKSWdJt4c",
+  authDomain: "a-new-me-1a17a.firebaseapp.com",
+  projectId: "a-new-me-1a17a",
+  storageBucket: "a-new-me-1a17a.firebasestorage.app",
+  messagingSenderId: "362235516132",
+  appId: "1:362235516132:web:1465c3ec03ce1d3f4608f1"
+};
+
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+
+let goals = [];
+
+let reentry = {
   id: false,
   housing: false,
   employment: false,
@@ -182,151 +215,867 @@ let reentry = JSON.parse(localStorage.getItem('reentryGoals')) || {
   savings: false
 };
 
-let streak = parseInt(localStorage.getItem('streak')) || 0;
+let streak = 0;
 
-function escapeHtml(value) {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');
-}
 
-function updateProgress() {
-  const total = goals.length;
-  const completed = goals.filter((g) => g.completed).length;
-  const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
+/* =========================
+   AUTH
+========================= */
 
-  // Dashboard Command Center Sync
-  localStorage.setItem('goalsCompleted', completed);
-  localStorage.setItem('goalsTotal', total);
-  localStorage.setItem('goalStreak', streak);
-  localStorage.setItem('goalsPercent', percent);
+onAuthStateChanged(auth, async (user) => {
 
-  document.getElementById('progressBar').style.width = percent + '%';
-  document.getElementById('progressText').innerText =
-    percent + '% of personal goals completed';
-  document.getElementById('streakText').innerText =
-    '🔥 Completion Streak: ' + streak;
-}
-
-function renderGoals() {
-  const list = document.getElementById('goalsList');
-  list.innerHTML = '';
-
-  goals.forEach((goal, index) => {
-    const div = document.createElement('div');
-    div.className = 'goal-item' + (goal.completed ? ' completed' : '');
-
-    div.innerHTML = `
-      <span>${escapeHtml(goal.text)}</span>
-      <div>
-        <button type="button" onclick="toggleGoal(${index})">
-          ${goal.completed ? 'Undo' : 'Done'}
-        </button>
-        <button type="button" onclick="deleteGoal(${index})">X</button>
-      </div>
-    `;
-
-    list.appendChild(div);
-  });
-
-  localStorage.setItem('goals', JSON.stringify(goals));
-  updateProgress();
-}
-
-function addGoal() {
-  const text = document.getElementById('goalInput').value.trim();
-  if (!text) {
-    document.getElementById('goalMsg').innerText = 'Enter a goal first.';
+  if (!user) {
+    window.location.href = "auth.html";
     return;
   }
 
-  goals.push({ text, completed: false });
-  document.getElementById('goalInput').value = '';
-  document.getElementById('goalMsg').innerText = 'Goal added.';
-  renderGoals();
-}
+  currentUser = user;
 
-function toggleGoal(index) {
-  if (!goals[index]) return;
-  goals[index].completed = !goals[index].completed;
+  await loadGoalSettings();
+  await loadGoals();
 
-  if (goals[index].completed) {
-    streak++;
-    localStorage.setItem('streak', streak);
-    showMotivation();
-    launchConfetti();
+});
+
+
+/* =========================
+   BACK
+========================= */
+
+window.goBack = function() {
+
+  if (document.referrer) {
+    history.back();
+  } else {
+    window.location.href = "index.html";
   }
 
-  renderGoals();
+};
+
+
+/* =========================
+   SETTINGS REFERENCE
+========================= */
+
+function settingsRef() {
+
+  return doc(
+    db,
+    "users",
+    currentUser.uid,
+    "goalSettings",
+    "main"
+  );
+
 }
 
-function deleteGoal(index) {
-  goals.splice(index, 1);
-  renderGoals();
-}
 
-function showMotivation() {
-  const messages = [
-    'Great job! Keep going!',
-    'Momentum builds success!',
-    'You’re doing this!',
-    'Progress over perfection!',
-    'Every win counts!'
-  ];
-  alert(messages[Math.floor(Math.random() * messages.length)]);
-}
+/* =========================
+   LOAD GOAL SETTINGS
+========================= */
 
-function launchConfetti() {
-  for (let i = 0; i < 30; i++) {
-    const div = document.createElement('div');
-    div.className = 'confetti';
-    div.style.left = Math.random() * 100 + 'vw';
-    div.style.background = `hsl(${Math.random() * 360}, 70%, 50%)`;
-    document.body.appendChild(div);
-    setTimeout(() => div.remove(), 2000);
+async function loadGoalSettings() {
+
+  try {
+
+    const snapshot =
+      await getDoc(settingsRef());
+
+    if (snapshot.exists()) {
+
+      const data = snapshot.data();
+
+      streak =
+        Number(data.streak) || 0;
+
+      reentry = {
+        id:
+          Boolean(
+            data.reentry?.id
+          ),
+
+        housing:
+          Boolean(
+            data.reentry?.housing
+          ),
+
+        employment:
+          Boolean(
+            data.reentry?.employment
+          ),
+
+        probation:
+          Boolean(
+            data.reentry?.probation
+          ),
+
+        savings:
+          Boolean(
+            data.reentry?.savings
+          )
+      };
+
+    }
+
+    renderReentry();
+
+  } catch (error) {
+
+    console.error(
+      "Goal settings load error:",
+      error
+    );
+
   }
+
 }
 
-function renderReentry() {
-  const container = document.getElementById('reentryGoals');
-  container.innerHTML = '';
 
-  const checklist = [
-    { key: 'id', label: 'Obtain State ID / Driver License' },
-    { key: 'housing', label: 'Secure Stable Housing' },
-    { key: 'employment', label: 'Apply for Employment or Training' },
-    { key: 'probation', label: 'Meet All Probation Requirements' },
-    { key: 'savings', label: 'Start $500 Emergency Fund' }
-  ];
+/* =========================
+   LOAD PERSONAL GOALS
+========================= */
 
-  checklist.forEach((item) => {
-    const div = document.createElement('div');
-    div.className = 'goal-item' + (reentry[item.key] ? ' completed' : '');
+async function loadGoals() {
 
-    div.innerHTML = `
-      <span>${item.label}</span>
-      <button type="button" onclick="toggleReentry('${item.key}')">
-        ${reentry[item.key] ? 'Completed' : 'Mark Done'}
-      </button>
-    `;
+  try {
 
-    container.appendChild(div);
+    const q = query(
+
+      collection(
+        db,
+        "users",
+        currentUser.uid,
+        "goals"
+      ),
+
+      orderBy(
+        "createdAt",
+        "asc"
+      )
+
+    );
+
+    const snapshot =
+      await getDocs(q);
+
+    goals = [];
+
+    snapshot.forEach(
+      (documentSnapshot) => {
+
+        goals.push({
+
+          id:
+            documentSnapshot.id,
+
+          ...documentSnapshot.data()
+
+        });
+
+      }
+    );
+
+    renderGoals();
+
+  } catch (error) {
+
+    console.error(
+      "Goals load error:",
+      error
+    );
+
+    document.getElementById(
+      "goalMsg"
+    ).textContent =
+      "Goals could not be loaded.";
+
+  }
+
+}
+
+
+/* =========================
+   PROGRESS
+========================= */
+
+async function updateProgress() {
+
+  const total =
+    goals.length;
+
+  const completed =
+    goals.filter(
+      goal => goal.completed
+    ).length;
+
+  const percent =
+    total === 0
+      ? 0
+      : Math.round(
+          (completed / total) * 100
+        );
+
+
+  document.getElementById(
+    "progressBar"
+  ).style.width =
+    percent + "%";
+
+
+  document.getElementById(
+    "progressText"
+  ).textContent =
+    percent +
+    "% of personal goals completed";
+
+
+  document.getElementById(
+    "streakText"
+  ).textContent =
+    "🔥 Completion Streak: " +
+    streak;
+
+
+  if (!currentUser) {
+    return;
+  }
+
+
+  try {
+
+    await setDoc(
+
+      settingsRef(),
+
+      {
+        streak: streak,
+
+        goalsCompleted:
+          completed,
+
+        goalsTotal:
+          total,
+
+        goalsPercent:
+          percent,
+
+        reentry:
+          reentry,
+
+        updatedAt:
+          new Date().toISOString()
+      },
+
+      {
+        merge: true
+      }
+
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Progress save error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================
+   RENDER GOALS
+========================= */
+
+function renderGoals() {
+
+  const list =
+    document.getElementById(
+      "goalsList"
+    );
+
+  list.innerHTML = "";
+
+
+  if (goals.length === 0) {
+
+    const empty =
+      document.createElement("p");
+
+    empty.textContent =
+      "No personal goals added yet.";
+
+    list.appendChild(empty);
+
+  }
+
+
+  goals.forEach((goal) => {
+
+    const div =
+      document.createElement("div");
+
+    div.className =
+      "goal-item" +
+      (
+        goal.completed
+          ? " completed"
+          : ""
+      );
+
+
+    const text =
+      document.createElement("span");
+
+    text.textContent =
+      goal.text || "Goal";
+
+
+    const buttons =
+      document.createElement("div");
+
+
+    const done =
+      document.createElement("button");
+
+    done.type =
+      "button";
+
+    done.textContent =
+      goal.completed
+        ? "Undo"
+        : "Done";
+
+    done.onclick =
+      function() {
+
+        toggleGoal(
+          goal.id,
+          Boolean(goal.completed)
+        );
+
+      };
+
+
+    const remove =
+      document.createElement("button");
+
+    remove.type =
+      "button";
+
+    remove.textContent =
+      "X";
+
+    remove.onclick =
+      function() {
+
+        deleteGoal(goal.id);
+
+      };
+
+
+    buttons.appendChild(done);
+    buttons.appendChild(remove);
+
+    div.appendChild(text);
+    div.appendChild(buttons);
+
+    list.appendChild(div);
+
   });
 
-  localStorage.setItem('reentryGoals', JSON.stringify(reentry));
+
+  updateProgress();
+
 }
 
-function toggleReentry(key) {
-  reentry[key] = !reentry[key];
+
+/* =========================
+   ADD GOAL
+========================= */
+
+window.addGoal =
+async function() {
+
+  if (!currentUser) {
+    return;
+  }
+
+
+  const input =
+    document.getElementById(
+      "goalInput"
+    );
+
+
+  const text =
+    input.value.trim();
+
+
+  if (!text) {
+
+    document.getElementById(
+      "goalMsg"
+    ).textContent =
+      "Enter a goal first.";
+
+    return;
+
+  }
+
+
+  try {
+
+    await addDoc(
+
+      collection(
+        db,
+        "users",
+        currentUser.uid,
+        "goals"
+      ),
+
+      {
+        text: text,
+
+        completed: false,
+
+        createdAt:
+          new Date().toISOString()
+      }
+
+    );
+
+
+    input.value = "";
+
+
+    document.getElementById(
+      "goalMsg"
+    ).textContent =
+      "Goal added.";
+
+
+    await loadGoals();
+
+
+  } catch (error) {
+
+    console.error(
+      "Add goal error:",
+      error
+    );
+
+
+    document.getElementById(
+      "goalMsg"
+    ).textContent =
+      "Goal could not be saved.";
+
+  }
+
+};
+
+
+/* =========================
+   COMPLETE / UNDO GOAL
+========================= */
+
+window.toggleGoal =
+async function(id, currentStatus) {
+
+  if (!currentUser) {
+    return;
+  }
+
+
+  const newStatus =
+    !currentStatus;
+
+
+  try {
+
+    await updateDoc(
+
+      doc(
+        db,
+        "users",
+        currentUser.uid,
+        "goals",
+        id
+      ),
+
+      {
+        completed:
+          newStatus,
+
+        updatedAt:
+          new Date().toISOString()
+      }
+
+    );
+
+
+    if (newStatus) {
+
+      streak++;
+
+      showMotivation();
+      launchConfetti();
+
+    } else {
+
+      /*
+      Undo does not add another
+      completion to the streak.
+      */
+
+      streak =
+        Math.max(
+          streak - 1,
+          0
+        );
+
+    }
+
+
+    await setDoc(
+
+      settingsRef(),
+
+      {
+        streak: streak
+      },
+
+      {
+        merge: true
+      }
+
+    );
+
+
+    await loadGoals();
+
+
+  } catch (error) {
+
+    console.error(
+      "Goal update error:",
+      error
+    );
+
+  }
+
+};
+
+
+/* =========================
+   DELETE GOAL
+========================= */
+
+window.deleteGoal =
+async function(id) {
+
+  if (!currentUser) {
+    return;
+  }
+
+
+  const confirmed =
+    confirm(
+      "Delete this goal?"
+    );
+
+
+  if (!confirmed) {
+    return;
+  }
+
+
+  try {
+
+    await deleteDoc(
+
+      doc(
+        db,
+        "users",
+        currentUser.uid,
+        "goals",
+        id
+      )
+
+    );
+
+
+    await loadGoals();
+
+
+  } catch (error) {
+
+    console.error(
+      "Delete goal error:",
+      error
+    );
+
+  }
+
+};
+
+
+/* =========================
+   MOTIVATION
+========================= */
+
+function showMotivation() {
+
+  const messages = [
+
+    "Great job! Keep going!",
+
+    "Momentum builds success!",
+
+    "You’re doing this!",
+
+    "Progress over perfection!",
+
+    "Every win counts!"
+
+  ];
+
+
+  alert(
+    messages[
+      Math.floor(
+        Math.random() *
+        messages.length
+      )
+    ]
+  );
+
+}
+
+
+/* =========================
+   CONFETTI
+========================= */
+
+function launchConfetti() {
+
+  for (
+    let i = 0;
+    i < 30;
+    i++
+  ) {
+
+    const div =
+      document.createElement(
+        "div"
+      );
+
+    div.className =
+      "confetti";
+
+
+    div.style.left =
+      Math.random() *
+      100 +
+      "vw";
+
+
+    div.style.background =
+      `hsl(${
+        Math.random() * 360
+      }, 70%, 50%)`;
+
+
+    document.body.appendChild(
+      div
+    );
+
+
+    setTimeout(
+      () => div.remove(),
+      2000
+    );
+
+  }
+
+}
+
+
+/* =========================
+   REENTRY GOALS
+========================= */
+
+function renderReentry() {
+
+  const container =
+    document.getElementById(
+      "reentryGoals"
+    );
+
+  container.innerHTML = "";
+
+
+  const checklist = [
+
+    {
+      key: "id",
+      label:
+        "Obtain State ID / Driver License"
+    },
+
+    {
+      key: "housing",
+      label:
+        "Secure Stable Housing"
+    },
+
+    {
+      key: "employment",
+      label:
+        "Apply for Employment or Training"
+    },
+
+    {
+      key: "probation",
+      label:
+        "Meet All Probation Requirements"
+    },
+
+    {
+      key: "savings",
+      label:
+        "Start $500 Emergency Fund"
+    }
+
+  ];
+
+
+  checklist.forEach(
+    (item) => {
+
+      const div =
+        document.createElement(
+          "div"
+        );
+
+
+      div.className =
+        "goal-item" +
+        (
+          reentry[item.key]
+            ? " completed"
+            : ""
+        );
+
+
+      const text =
+        document.createElement(
+          "span"
+        );
+
+      text.textContent =
+        item.label;
+
+
+      const button =
+        document.createElement(
+          "button"
+        );
+
+      button.type =
+        "button";
+
+
+      button.textContent =
+        reentry[item.key]
+          ? "Completed"
+          : "Mark Done";
+
+
+      button.onclick =
+        function() {
+
+          toggleReentry(
+            item.key
+          );
+
+        };
+
+
+      div.appendChild(text);
+      div.appendChild(button);
+
+      container.appendChild(div);
+
+    }
+  );
+
+}
+
+
+/* =========================
+   TOGGLE REENTRY GOAL
+========================= */
+
+window.toggleReentry =
+async function(key) {
+
+  if (!currentUser) {
+    return;
+  }
+
+
+  if (
+    !Object.prototype.hasOwnProperty.call(
+      reentry,
+      key
+    )
+  ) {
+    return;
+  }
+
+
+  reentry[key] =
+    !reentry[key];
+
+
   renderReentry();
-}
 
-renderGoals();
-renderReentry();
+
+  try {
+
+    await setDoc(
+
+      settingsRef(),
+
+      {
+        reentry:
+          reentry,
+
+        updatedAt:
+          new Date().toISOString()
+      },
+
+      {
+        merge: true
+      }
+
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Reentry goal save error:",
+      error
+    );
+
+  }
+
+};
+
 </script>
-
 </body>
 </html>
