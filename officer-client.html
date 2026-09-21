@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Client Case View | A New Me Government</title>
+
+<style>
+:root{
+  --navy:#17345f;
+  --blue:#2457a6;
+  --light:#eef3f8;
+  --white:#ffffff;
+  --text:#1f2937;
+  --muted:#667085;
+  --border:#d8e0ea;
+  --green:#198754;
+  --orange:#b45309;
+  --red:#b42318;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:var(--light);
+  color:var(--text);
+}
+
+.header{
+  background:linear-gradient(135deg,var(--navy),var(--blue));
+  color:white;
+  padding:16px;
+}
+
+.header-inner{
+  max-width:1100px;
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+}
+
+.header-left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.back-btn{
+  background:white;
+  color:var(--navy);
+  border:none;
+  padding:8px 13px;
+  border-radius:20px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.header h1{
+  margin:0;
+  font-size:21px;
+}
+
+.header p{
+  margin:4px 0 0;
+  opacity:.9;
+  font-size:13px;
+}
+
+.demo-banner{
+  background:#fff3cd;
+  color:#664d03;
+  text-align:center;
+  padding:10px;
+  font-size:13px;
+  font-weight:bold;
+  border-bottom:1px solid #ffe69c;
+}
+
+.container{
+  max-width:1100px;
+  margin:auto;
+  padding:20px;
+}
+
+.client-header{
+  background:white;
+  padding:22px;
+  border-radius:12px;
+  box-shadow:0 4px 12px rgba(0,0,0,.07);
+  margin-bottom:18px;
+}
+
+.client-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:15px;
+  flex-wrap:wrap;
+}
+
+.client-name{
+  color:var(--navy);
+  font-size:26px;
+  font-weight:bold;
+}
+
+.client-id{
+  color:var(--muted);
+  margin-top:5px;
+}
+
+.active-badge{
+  background:#d1e7dd;
+  color:#0f5132;
+  padding:6px 11px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:bold;
+}
+
+.program-box{
+  margin-top:20px;
+  background:#f7f9fc;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px;
+}
+
+.program-grid{
+  display:grid;
+  grid-template-columns:
+    repeat(auto-fit,minmax(170px,1fr));
+  gap:14px;
+}
+
+.label{
+  color:var(--muted);
+  font-size:12px;
+}
+
+.value{
+  color:var(--navy);
+  font-size:17px;
+  font-weight:bold;
+  margin-top:4px;
+}
+
+.progress-bar{
+  height:12px;
+  background:#e5e7eb;
+  border-radius:20px;
+  overflow:hidden;
+  margin-top:15px;
+}
+
+.progress-fill{
+  height:100%;
+  background:var(--blue);
+  width:41%;
+}
+
+.action-row{
+  display:flex;
+  gap:9px;
+  flex-wrap:wrap;
+  margin-top:18px;
+}
+
+.btn{
+  border:none;
+  border-radius:8px;
+  padding:10px 13px;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+.btn-primary{
+  background:var(--navy);
+  color:white;
+}
+
+.btn-light{
+  background:#e8f0ff;
+  color:var(--navy);
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:
+    repeat(auto-fit,minmax(300px,1fr));
+  gap:16px;
+}
+
+.card{
+  background:white;
+  border-radius:12px;
+  padding:20px;
+  box-shadow:0 4px 12px rgba(0,0,0,.07);
+}
+
+.card h2{
+  color:var(--navy);
+  margin-top:0;
+  font-size:19px;
+}
+
+.item{
+  padding:10px 0;
+  border-bottom:1px solid #edf0f4;
+}
+
+.item:last-child{
+  border-bottom:none;
+}
+
+.good{
+  color:var(--green);
+  font-weight:bold;
+}
+
+.attention{
+  color:var(--red);
+  font-weight:bold;
+}
+
+.pending{
+  color:var(--orange);
+  font-weight:bold;
+}
+
+.mini-progress{
+  width:100%;
+  height:9px;
+  background:#e5e7eb;
+  border-radius:20px;
+  overflow:hidden;
+  margin-top:8px;
+}
+
+.mini-fill{
+  height:100%;
+  background:var(--blue);
+}
+
+.notice{
+  background:#eef4ff;
+  border-left:4px solid var(--blue);
+  padding:12px;
+  border-radius:7px;
+  line-height:1.5;
+  font-size:14px;
+}
+
+.private-box{
+  background:#f7f9fc;
+  border:1px solid var(--border);
+  padding:15px;
+  border-radius:9px;
+  color:#475467;
+  font-size:13px;
+  line-height:1.5;
+}
+
+.timeline-item{
+  border-left:3px solid var(--blue);
+  padding:0 0 18px 14px;
+}
+
+.timeline-date{
+  color:var(--muted);
+  font-size:12px;
+}
+
+.timeline-title{
+  font-weight:bold;
+  margin-top:4px;
+}
+
+.modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  z-index:1000;
+}
+
+.modal-card{
+  background:white;
+  width:100%;
+  max-width:500px;
+  border-radius:14px;
+  padding:22px;
+}
+
+.modal-card h2{
+  color:var(--navy);
+  margin-top:0;
+}
+
+.modal-card textarea,
+.modal-card input,
+.modal-card select{
+  width:100%;
+  padding:11px;
+  border:1px solid var(--border);
+  border-radius:8px;
+  margin-top:8px;
+  font:inherit;
+}
+
+.modal-actions{
+  display:flex;
+  gap:10px;
+  margin-top:18px;
+}
+
+.modal-actions button{
+  flex:1;
+}
+
+.footer{
+  text-align:center;
+  padding:25px;
+  color:var(--muted);
+  font-size:12px;
+}
+
+@media(max-width:600px){
+  .container{
+    padding:12px;
+  }
+
+  .header h1{
+    font-size:17px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header class="header">
+
+<div class="header-inner">
+
+  <div class="header-left">
+
+    <button
+      type="button"
+      class="back-btn"
+      onclick="goBack()">
+      ← Back
+    </button>
+
+    <div>
+      <h1>A New Me Government</h1>
+      <p>Officer Client Case View</p>
+    </div>
+
+  </div>
+
+</div>
+
+</header>
+
+
+<div class="demo-banner">
+  DEMO MODE — Fictional client and sample supervision information only.
+</div>
+
+
+<main class="container">
+
+
+<!-- CLIENT SUMMARY -->
+
+<section class="client-header">
+
+<div class="client-row">
+
+  <div>
+
+    <div
+      class="client-name"
+      id="clientName">
+      Jordan M.
+    </div>
+
+    <div
+      class="client-id"
+      id="clientId">
+      Demo Client ANM-1001
+    </div>
+
+  </div>
+
+  <span class="active-badge">
+    ACTIVE
+  </span>
+
+</div>
+
+
+<div class="program-box">
+
+<div class="program-grid">
+
+  <div>
+    <div class="label">
+      Program
+    </div>
+
+    <div class="value">
+      Probation Support
+    </div>
+  </div>
+
+
+  <div>
+    <div class="label">
+      A New Me Start
+    </div>
+
+    <div class="value">
+      April 23, 2026
+    </div>
+  </div>
+
+
+  <div>
+    <div class="label">
+      Expected Program End
+    </div>
+
+    <div class="value">
+      April 23, 2027
+    </div>
+  </div>
+
+
+  <div>
+    <div class="label">
+      Time Remaining
+    </div>
+
+    <div class="value">
+      214 Days
+    </div>
+  </div>
+
+</div>
+
+
+<div class="progress-bar">
+
+  <div class="progress-fill"></div>
+
+</div>
+
+<p style="font-size:13px;color:#667085;">
+  151 of 365 program days completed
+</p>
+
+</div>
+
+
+<div class="action-row">
+
+  <button
+    class="btn btn-primary"
+    onclick="openMessage()">
+    💬 Message Client
+  </button>
+
+  <button
+    class="btn btn-light"
+    onclick="demoAction(
+      'Schedule Check-In'
+    )">
+    📅 Schedule Check-In
+  </button>
+
+  <button
+    class="btn btn-light"
+    onclick="demoAction(
+      'Request Proof'
+    )">
+    📁 Request Proof
+  </button>
+
+  <button
+    class="btn btn-light"
+    onclick="demoAction(
+      'Send Resource'
+    )">
+    🔗 Send Resource
+  </button>
+
+</div>
+
+</section>
+
+
+<div class="grid">
+
+
+<!-- REQUIREMENTS -->
+
+<section class="card">
+
+<h2>🛡️ Supervision Requirements</h2>
+
+<div class="item">
+  Reporting Requirement
+  <div class="good">
+    ✓ Current
+  </div>
+</div>
+
+<div class="item">
+  Employment Verification
+  <div class="attention">
+    Proof Requested
+  </div>
+</div>
+
+<div class="item">
+  Community Service
+  <div>
+    32 / 40 Hours
+  </div>
+
+  <div class="mini-progress">
+    <div
+      class="mini-fill"
+      style="width:80%;">
+    </div>
+  </div>
+</div>
+
+<div class="item">
+  Required Program
+  <div class="good">
+    ✓ Completed
+  </div>
+</div>
+
+<div class="item">
+  Overall Requirements
+  <div>
+    <strong>5 / 8 completed</strong>
+  </div>
+</div>
+
+</section>
+
+
+<!-- APPOINTMENTS -->
+
+<section class="card">
+
+<h2>📅 Appointments & Check-Ins</h2>
+
+<div class="item">
+
+  <strong>Next Officer Check-In</strong>
+
+  <div>
+    September 25, 2026
+  </div>
+
+  <div>
+    10:00 AM
+  </div>
+
+  <div class="good">
+    Upcoming
+  </div>
+
+</div>
+
+
+<div class="item">
+
+  <strong>Previous Check-In</strong>
+
+  <div>
+    September 11, 2026
+  </div>
+
+  <div class="good">
+    ✓ Completed
+  </div>
+
+</div>
+
+
+<button
+  class="btn btn-light"
+  onclick="demoAction(
+    'Appointment History'
+  )">
+  View Appointment History
+</button>
+
+</section>
+
+
+<!-- EMPLOYMENT -->
+
+<section class="card">
+
+<h2>💼 Employment</h2>
+
+<div class="item">
+  Applications
+  <strong>12</strong>
+</div>
+
+<div class="item">
+  Interviews
+  <strong>3</strong>
+</div>
+
+<div class="item">
+  Follow-Ups
+  <strong>6</strong>
+</div>
+
+<div class="item">
+  Current Status
+  <div class="good">
+    Employed
+  </div>
+</div>
+
+<div class="item">
+  Verification
+  <div class="attention">
+    Requested
+  </div>
+</div>
+
+</section>
+
+
+<!-- HOUSING -->
+
+<section class="card">
+
+<h2>🏠 Housing</h2>
+
+<div class="item">
+  Housing Plan
+  <div class="good">
+    ✓ On File
+  </div>
+</div>
+
+<div class="item">
+  Current Status
+  <div class="good">
+    Stable Housing Reported
+  </div>
+</div>
+
+<div class="item">
+  Housing Barrier
+  <div>
+    None currently shared
+  </div>
+</div>
+
+</section>
+
+
+<!-- BARRIERS -->
+
+<section class="card">
+
+<h2>🆘 Shared Barriers & Support</h2>
+
+<div class="notice">
+  Clients control which appropriate reentry
+  barriers are shared through the support
+  system. Private journal and reflection
+  information is not displayed here.
+</div>
+
+<div class="item">
+  Active Shared Barriers:
+  <strong>0</strong>
+</div>
+
+<div class="item">
+  Resolved Barriers:
+  <strong>2</strong>
+</div>
+
+<div class="item">
+  Last Support Connection:
+  <strong>Transportation Resource</strong>
+</div>
+
+</section>
+
+
+<!-- PROOF -->
+
+<section class="card">
+
+<h2>📁 Proof & Documents</h2>
+
+<div class="item">
+  Documents Ready
+  <strong>5</strong>
+</div>
+
+<div class="item">
+  Still Needed
+  <strong>1</strong>
+</div>
+
+<div class="item">
+  Employment Verification
+  <div class="attention">
+    Requested
+  </div>
+</div>
+
+<div class="item">
+  Program Completion
+  <div class="good">
+    ✓ Ready
+  </div>
+</div>
+
+<button
+  class="btn btn-light"
+  onclick="demoAction(
+    'Document Review'
+  )">
+  Review Proof
+</button>
+
+</section>
+
+
+<!-- GOALS -->
+
+<section class="card">
+
+<h2>🎯 Progress & Goals</h2>
+
+<div class="item">
+  Goals Completed
+  <strong>4 / 6</strong>
+</div>
+
+<div class="mini-progress">
+  <div
+    class="mini-fill"
+    style="width:67%;">
+  </div>
+</div>
+
+<div class="item">
+  Employment Goal
+  <div class="good">
+    ✓ Completed
+  </div>
+</div>
+
+<div class="item">
+  Transportation Goal
+  <div class="pending">
+    In Progress
+  </div>
+</div>
+
+</section>
+
+
+<!-- COMMUNICATION -->
+
+<section class="card">
+
+<h2>💬 Communication</h2>
+
+<div class="item">
+  Last Officer Contact
+  <strong>September 18, 2026</strong>
+</div>
+
+<div class="item">
+  Last Client Response
+  <strong>September 18, 2026</strong>
+</div>
+
+<div class="item">
+  Unread Messages
+  <strong>1</strong>
+</div>
+
+<button
+  class="btn btn-primary"
+  onclick="openMessage()">
+  Message Client
+</button>
+
+</section>
+
+
+<!-- CONTACT HISTORY -->
+
+<section class="card">
+
+<h2>🕒 Contact & Activity History</h2>
+
+<div class="timeline-item">
+
+  <div class="timeline-date">
+    September 18, 2026
+  </div>
+
+  <div class="timeline-title">
+    Officer Message Sent
+  </div>
+
+  <div>
+    Reminder sent regarding employment verification.
+  </div>
+
+</div>
+
+
+<div class="timeline-item">
+
+  <div class="timeline-date">
+    September 11, 2026
+  </div>
+
+  <div class="timeline-title">
+    Officer Check-In Completed
+  </div>
+
+  <div>
+    Scheduled supervision check-in recorded.
+  </div>
+
+</div>
+
+
+<div class="timeline-item">
+
+  <div class="timeline-date">
+    September 5, 2026
+  </div>
+
+  <div class="timeline-title">
+    Community Service Updated
+  </div>
+
+  <div>
+    Progress updated to 32 of 40 hours.
+  </div>
+
+</div>
+
+</section>
+
+
+<!-- PRIVACY -->
+
+<section class="card">
+
+<h2>🔒 Client Privacy</h2>
+
+<div class="private-box">
+
+<strong>Not displayed in Officer View:</strong>
+
+<br><br>
+
+Private mindset reflections, personal journaling,
+family reflections, private legal notes, detailed
+personal budgeting information, sobriety
+self-tracking that is not part of an authorized
+supervision requirement, and other private
+A New Me entries.
+
+<br><br>
+
+Production access would be controlled by
+authorized agency roles, supervision purpose,
+sharing permissions, and applicable agency
+policy.
+
+</div>
+
+</section>
+
+
+</div>
+
+</main>
+
+
+<!-- MESSAGE MODAL -->
+
+<div
+  class="modal"
+  id="messageModal">
+
+<div class="modal-card">
+
+<h2>💬 Message Client</h2>
+
+<p>
+  Secure demonstration message to
+  <strong id="messageClientName">
+    Jordan M.
+  </strong>
+</p>
+
+
+<select id="messageType">
+
+  <option>
+    General Message
+  </option>
+
+  <option>
+    Appointment Reminder
+  </option>
+
+  <option>
+    Document Request
+  </option>
+
+  <option>
+    Check-In Request
+  </option>
+
+  <option>
+    Resource Follow-Up
+  </option>
+
+</select>
+
+
+<textarea
+  id="messageText"
+  rows="5"
+  placeholder="Enter demonstration message...">
+</textarea>
+
+
+<div class="modal-actions">
+
+  <button
+    class="btn btn-light"
+    onclick="closeMessage()">
+    Cancel
+  </button>
+
+  <button
+    class="btn btn-primary"
+    onclick="sendDemoMessage()">
+    Send Demo Message
+  </button>
+
+</div>
+
+</div>
+
+</div>
+
+
+<footer class="footer">
+  A New Me Government — Demonstration Environment
+</footer>
+
+
+<script>
+
+/* =========================
+   CLIENT DEMO DATA
+========================= */
+
+const clientName =
+  sessionStorage.getItem(
+    "demoClientName"
+  ) || "Jordan M.";
+
+const clientId =
+  sessionStorage.getItem(
+    "demoClientId"
+  ) || "ANM-1001";
+
+
+document.getElementById(
+  "clientName"
+).textContent =
+  clientName;
+
+
+document.getElementById(
+  "clientId"
+).textContent =
+  "Demo Client " + clientId;
+
+
+document.getElementById(
+  "messageClientName"
+).textContent =
+  clientName;
+
+
+/* =========================
+   BACK
+========================= */
+
+function goBack(){
+
+  window.location.href =
+    "officer-dashboard.html";
+
+}
+
+
+/* =========================
+   MESSAGE
+========================= */
+
+function openMessage(){
+
+  document.getElementById(
+    "messageModal"
+  ).style.display =
+    "flex";
+
+}
+
+
+function closeMessage(){
+
+  document.getElementById(
+    "messageModal"
+  ).style.display =
+    "none";
+
+}
+
+
+function sendDemoMessage(){
+
+  const message =
+    document.getElementById(
+      "messageText"
+    ).value.trim();
+
+
+  if(!message){
+
+    alert(
+      "Enter a demonstration message."
+    );
+
+    return;
+
+  }
+
+
+  alert(
+    "DEMO: Message recorded for presentation purposes only. No real message was sent."
+  );
+
+
+  document.getElementById(
+    "messageText"
+  ).value = "";
+
+
+  closeMessage();
+
+}
+
+
+/* =========================
+   OTHER DEMO ACTIONS
+========================= */
+
+function demoAction(action){
+
+  alert(
+    "DEMO: " +
+    action +
+    " would open here in the production system."
+  );
+
+}
+
+
+/* =========================
+   MODAL BACKGROUND
+========================= */
+
+document
+.getElementById(
+  "messageModal"
+)
+.addEventListener(
+  "click",
+  function(event){
+
+    if(
+      event.target ===
+      document.getElementById(
+        "messageModal"
+      )
+    ){
+
+      closeMessage();
+
+    }
+
+  }
+);
+
+</script>
+
+</body>
+</html>
