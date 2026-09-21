@@ -16,6 +16,14 @@ body{
   background:#1f3c88;
   color:white;
   padding:15px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.header-title{
+  font-size:20px;
+  font-weight:bold;
 }
 
 .container{
@@ -32,13 +40,15 @@ body{
   box-shadow:0 4px 10px rgba(0,0,0,.08);
 }
 
-.back-btn{
+.back-btn,
+.logout-btn{
   background:white;
   color:#1f3c88;
   border:none;
   padding:8px 14px;
   border-radius:20px;
   cursor:pointer;
+  font-weight:bold;
 }
 
 input,
@@ -64,20 +74,41 @@ textarea{
   font-weight:bold;
 }
 
+.done-btn{
+  background:#198754;
+  color:white;
+  border:none;
+  padding:7px 10px;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+.delete-btn{
+  background:#b42318;
+  color:white;
+  border:none;
+  padding:7px 10px;
+  border-radius:6px;
+  cursor:pointer;
+}
+
 .requirement{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:10px;
   background:#f4f6fb;
-  padding:12px;
-  border-radius:8px;
+  padding:15px;
+  border-radius:10px;
   margin-top:10px;
+  border-left:5px solid #1f3c88;
 }
 
 .requirement.completed{
-  opacity:.6;
-  text-decoration:line-through;
+  border-left-color:#198754;
+  opacity:.7;
+}
+
+.requirement-buttons{
+  display:flex;
+  gap:8px;
+  margin-top:10px;
 }
 
 .status{
@@ -90,6 +121,27 @@ textarea{
   font-weight:bold;
   margin-top:10px;
 }
+
+.summary{
+  display:flex;
+  gap:20px;
+  flex-wrap:wrap;
+}
+
+.summary-box{
+  flex:1;
+  min-width:180px;
+  background:#f4f6fb;
+  padding:15px;
+  border-radius:10px;
+  text-align:center;
+}
+
+.big{
+  font-size:30px;
+  font-weight:bold;
+  color:#1f3c88;
+}
 </style>
 </head>
 
@@ -97,429 +149,1351 @@ textarea{
 
 <div class="header">
 
-  <button type="button" onclick="goBack()" class="back-btn">
+  <button
+    type="button"
+    onclick="goBack()"
+    class="back-btn">
     ← Back
   </button>
 
-  <h2>My Supervision</h2>
+  <div class="header-title">
+    My Supervision
+  </div>
+
+  <button
+    type="button"
+    onclick="logout()"
+    class="logout-btn">
+    Logout
+  </button>
 
 </div>
 
 <div class="container">
 
+  <!-- SUMMARY -->
+
   <div class="card">
-    <h3>Supervision Information</h3>
 
-    <label for="supervisionType">Supervision Type</label>
-    <select id="supervisionType">
-      <option value="">Select</option>
-      <option value="Probation">Probation</option>
-      <option value="Parole">Parole</option>
-      <option value="Other Community Supervision">Other Community Supervision</option>
-    </select>
+    <h3>Supervision Progress</h3>
 
-    <label for="officerName">Officer / Caseworker Name</label>
-    <input type="text" id="officerName"
-      placeholder="Enter officer or caseworker name">
+    <div class="summary">
 
-    <label for="officerPhone">Phone Number</label>
-    <input type="tel" id="officerPhone"
-      placeholder="Enter phone number">
+      <div class="summary-box">
 
-    <label for="officerEmail">Email</label>
-    <input type="email" id="officerEmail"
-      placeholder="Enter email address">
+        <div
+          class="big"
+          id="completedCount">
+          0
+        </div>
 
-    <label for="startDate">Supervision Start Date</label>
-    <input type="date" id="startDate">
+        <div>
+          Requirements Completed
+        </div>
 
-    <label for="endDate">Expected End Date</label>
-    <input type="date" id="endDate">
+      </div>
 
-    <label for="nextReport">Next Reporting Date</label>
-    <input type="date" id="nextReport">
+      <div class="summary-box">
 
-    <button type="button" class="action-btn"
-      onclick="saveSupervision()">
-      Save Information
-    </button>
+        <div
+          class="big"
+          id="remainingCount">
+          0
+        </div>
 
-    <p id="saveMessage" class="save-msg" aria-live="polite"></p>
+        <div>
+          Requirements Remaining
+        </div>
+
+      </div>
+
+    </div>
+
   </div>
 
 
+  <!-- SUPERVISION INFO -->
+
   <div class="card">
+
+    <h3>Supervision Information</h3>
+
+    <label for="supervisionType">
+      Supervision Type
+    </label>
+
+    <select id="supervisionType">
+
+      <option value="">
+        Select
+      </option>
+
+      <option value="Probation">
+        Probation
+      </option>
+
+      <option value="Parole">
+        Parole
+      </option>
+
+      <option value="Other Community Supervision">
+        Other Community Supervision
+      </option>
+
+    </select>
+
+
+    <label for="officerName">
+      Officer / Caseworker Name
+    </label>
+
+    <input
+      type="text"
+      id="officerName"
+      placeholder="Enter officer or caseworker name"
+    >
+
+
+    <label for="officerPhone">
+      Phone Number
+    </label>
+
+    <input
+      type="tel"
+      id="officerPhone"
+      placeholder="Enter phone number"
+    >
+
+
+    <label for="officerEmail">
+      Email
+    </label>
+
+    <input
+      type="email"
+      id="officerEmail"
+      placeholder="Enter email address"
+    >
+
+
+    <label for="startDate">
+      Supervision Start Date
+    </label>
+
+    <input
+      type="date"
+      id="startDate"
+    >
+
+
+    <label for="endDate">
+      Expected End Date
+    </label>
+
+    <input
+      type="date"
+      id="endDate"
+    >
+
+
+    <label for="nextReport">
+      Next Reporting Date
+    </label>
+
+    <input
+      type="date"
+      id="nextReport"
+    >
+
+
+    <button
+      type="button"
+      class="action-btn"
+      onclick="saveSupervision()">
+
+      Save Information
+
+    </button>
+
+    <p
+      id="saveMessage"
+      class="save-msg">
+    </p>
+
+  </div>
+
+
+  <!-- REQUIREMENTS -->
+
+  <div class="card">
+
     <h3>Supervision Requirements</h3>
 
     <p>
-      Add requirements you are responsible for completing.
+      Add requirements you are responsible
+      for completing.
     </p>
 
-    <input type="text" id="requirementInput"
-      placeholder="Example: Complete anger management class">
+    <input
+      type="text"
+      id="requirementInput"
+      placeholder="Example: Complete anger management class"
+    >
 
-    <button type="button" class="action-btn"
+    <button
+      type="button"
+      class="action-btn"
       onclick="addRequirement()">
+
       Add Requirement
+
     </button>
 
     <div id="requirementsList"></div>
+
   </div>
 
 
+  <!-- COMMUNITY SERVICE -->
+
   <div class="card">
+
     <h3>Community Service</h3>
 
-    <label for="requiredHours">Required Hours</label>
-    <input type="number" id="requiredHours" min="0"
-      placeholder="0">
+    <label for="requiredHours">
+      Required Hours
+    </label>
 
-    <label for="completedHours">Completed Hours</label>
-    <input type="number" id="completedHours" min="0"
-      placeholder="0">
+    <input
+      type="number"
+      id="requiredHours"
+      min="0"
+      placeholder="0"
+    >
 
-    <button type="button" class="action-btn"
+
+    <label for="completedHours">
+      Completed Hours
+    </label>
+
+    <input
+      type="number"
+      id="completedHours"
+      min="0"
+      placeholder="0"
+    >
+
+
+    <button
+      type="button"
+      class="action-btn"
       onclick="saveHours()">
+
       Save Hours
+
     </button>
 
-    <p id="hoursStatus" class="status"></p>
+    <p
+      id="hoursStatus"
+      class="status">
+    </p>
+
   </div>
 
 
+  <!-- FEES -->
+
   <div class="card">
+
     <h3>Fees & Payments</h3>
 
-    <label for="feesOwed">Amount Owed</label>
-    <input type="number" id="feesOwed"
-      min="0" step="0.01" placeholder="0.00">
+    <label for="feesOwed">
+      Amount Owed
+    </label>
 
-    <label for="feesPaid">Amount Paid</label>
-    <input type="number" id="feesPaid"
-      min="0" step="0.01" placeholder="0.00">
+    <input
+      type="number"
+      id="feesOwed"
+      min="0"
+      step="0.01"
+      placeholder="0.00"
+    >
 
-    <button type="button" class="action-btn"
+
+    <label for="feesPaid">
+      Amount Paid
+    </label>
+
+    <input
+      type="number"
+      id="feesPaid"
+      min="0"
+      step="0.01"
+      placeholder="0.00"
+    >
+
+
+    <button
+      type="button"
+      class="action-btn"
       onclick="saveFees()">
+
       Save Payment Progress
+
     </button>
 
-    <p id="feesStatus" class="status"></p>
+    <p
+      id="feesStatus"
+      class="status">
+    </p>
+
   </div>
 
 
+  <!-- NOTES -->
+
   <div class="card">
+
     <h3>Important Notes</h3>
 
-    <textarea id="supervisionNotes" rows="5"
-      placeholder="Add reminders or important information here"></textarea>
+    <textarea
+      id="supervisionNotes"
+      rows="5"
+      placeholder="Add reminders or important information here">
+    </textarea>
 
-    <button type="button" class="action-btn"
+    <button
+      type="button"
+      class="action-btn"
       onclick="saveNotes()">
+
       Save Notes
+
     </button>
 
-    <p id="notesMessage" class="save-msg"></p>
+    <p
+      id="notesMessage"
+      class="save-msg">
+    </p>
+
   </div>
 
 </div>
 
 
-<script>
+<script type="module">
 
-function goBack(){
-  if(document.referrer){
-    history.back();
-  }else{
-    window.location.href="index.html";
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+
+
+import {
+  getAuth,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  collection,
+  addDoc,
+  getDocs,
+  updateDoc,
+  deleteDoc,
+  query,
+  orderBy
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+
+const firebaseConfig = {
+
+  apiKey:
+  "AIzaSyA4O2nEtjdy9fSh66gnHH6jsbKKSWdJt4c",
+
+  authDomain:
+  "a-new-me-1a17a.firebaseapp.com",
+
+  projectId:
+  "a-new-me-1a17a",
+
+  storageBucket:
+  "a-new-me-1a17a.firebasestorage.app",
+
+  messagingSenderId:
+  "362235516132",
+
+  appId:
+  "1:362235516132:web:1465c3ec03ce1d3f4608f1"
+
+};
+
+
+const app =
+initializeApp(firebaseConfig);
+
+const auth =
+getAuth(app);
+
+const db =
+getFirestore(app);
+
+let currentUser = null;
+
+
+/* =========================
+   AUTH
+========================= */
+
+onAuthStateChanged(
+auth,
+async (user) => {
+
+  if(!user){
+
+    window.location.href =
+    "auth.html";
+
+    return;
+
   }
+
+  currentUser = user;
+
+  await loadSupervision();
+
+  await loadRequirements();
+
+});
+
+
+/* =========================
+   BACK
+========================= */
+
+window.goBack =
+function(){
+
+  if(document.referrer){
+
+    history.back();
+
+  }else{
+
+    window.location.href =
+    "index.html";
+
+  }
+
+};
+
+
+/* =========================
+   LOGOUT
+========================= */
+
+window.logout =
+async function(){
+
+  await signOut(auth);
+
+  window.location.href =
+  "auth.html";
+
+};
+
+
+/* =========================
+   MAIN SUPERVISION RECORD
+========================= */
+
+function supervisionRef(){
+
+  return doc(
+    db,
+    "users",
+    currentUser.uid,
+    "supervision",
+    "main"
+  );
+
 }
 
 
-let requirements =
-  JSON.parse(localStorage.getItem("supervisionRequirements")) || [];
+/* =========================
+   SAVE BASIC INFORMATION
+========================= */
 
+window.saveSupervision =
+async function(){
 
-function saveSupervision(){
+  if(!currentUser){
+    return;
+  }
+
 
   const data = {
-    type: document.getElementById("supervisionType").value,
-    officerName: document.getElementById("officerName").value,
-    officerPhone: document.getElementById("officerPhone").value,
-    officerEmail: document.getElementById("officerEmail").value,
-    startDate: document.getElementById("startDate").value,
-    endDate: document.getElementById("endDate").value,
-    nextReport: document.getElementById("nextReport").value
+
+    type:
+      document.getElementById(
+        "supervisionType"
+      ).value,
+
+    officerName:
+      document.getElementById(
+        "officerName"
+      ).value.trim(),
+
+    officerPhone:
+      document.getElementById(
+        "officerPhone"
+      ).value.trim(),
+
+    officerEmail:
+      document.getElementById(
+        "officerEmail"
+      ).value.trim(),
+
+    startDate:
+      document.getElementById(
+        "startDate"
+      ).value,
+
+    endDate:
+      document.getElementById(
+        "endDate"
+      ).value,
+
+    nextReport:
+      document.getElementById(
+        "nextReport"
+      ).value,
+
+    updatedAt:
+      new Date().toISOString()
+
   };
 
-  localStorage.setItem(
-    "supervisionInfo",
-    JSON.stringify(data)
-  );
 
-  localStorage.setItem(
-    "supervisionNextReport",
-    data.nextReport
-  );
+  try{
 
-  document.getElementById("saveMessage").innerText =
-    "Supervision information saved.";
+    await setDoc(
+      supervisionRef(),
+      data,
+      {merge:true}
+    );
+
+
+    document.getElementById(
+      "saveMessage"
+    ).textContent =
+      "Supervision information saved.";
+
+
+  }catch(error){
+
+    console.error(
+      "Supervision save error:",
+      error
+    );
+
+
+    alert(
+      "Supervision information could not be saved."
+    );
+
+  }
+
+};
+
+
+/* =========================
+   LOAD SUPERVISION
+========================= */
+
+async function loadSupervision(){
+
+  try{
+
+    const snapshot =
+      await getDoc(
+        supervisionRef()
+      );
+
+
+    if(!snapshot.exists()){
+      return;
+    }
+
+
+    const data =
+      snapshot.data();
+
+
+    document.getElementById(
+      "supervisionType"
+    ).value =
+      data.type || "";
+
+
+    document.getElementById(
+      "officerName"
+    ).value =
+      data.officerName || "";
+
+
+    document.getElementById(
+      "officerPhone"
+    ).value =
+      data.officerPhone || "";
+
+
+    document.getElementById(
+      "officerEmail"
+    ).value =
+      data.officerEmail || "";
+
+
+    document.getElementById(
+      "startDate"
+    ).value =
+      data.startDate || "";
+
+
+    document.getElementById(
+      "endDate"
+    ).value =
+      data.endDate || "";
+
+
+    document.getElementById(
+      "nextReport"
+    ).value =
+      data.nextReport || "";
+
+
+    document.getElementById(
+      "requiredHours"
+    ).value =
+      data.communityServiceRequired || "";
+
+
+    document.getElementById(
+      "completedHours"
+    ).value =
+      data.communityServiceCompleted || "";
+
+
+    document.getElementById(
+      "feesOwed"
+    ).value =
+      data.feesOwed || "";
+
+
+    document.getElementById(
+      "feesPaid"
+    ).value =
+      data.feesPaid || "";
+
+
+    document.getElementById(
+      "supervisionNotes"
+    ).value =
+      data.notes || "";
+
+
+    updateHoursDisplay(data);
+
+    updateFeesDisplay(data);
+
+
+  }catch(error){
+
+    console.error(
+      "Supervision load error:",
+      error
+    );
+
+  }
+
 }
 
 
-function loadSupervision(){
+/* =========================
+   ADD REQUIREMENT
+========================= */
 
-  const saved =
-    JSON.parse(localStorage.getItem("supervisionInfo"));
+window.addRequirement =
+async function(){
 
-  if(!saved) return;
+  if(!currentUser){
+    return;
+  }
 
-  document.getElementById("supervisionType").value =
-    saved.type || "";
-
-  document.getElementById("officerName").value =
-    saved.officerName || "";
-
-  document.getElementById("officerPhone").value =
-    saved.officerPhone || "";
-
-  document.getElementById("officerEmail").value =
-    saved.officerEmail || "";
-
-  document.getElementById("startDate").value =
-    saved.startDate || "";
-
-  document.getElementById("endDate").value =
-    saved.endDate || "";
-
-  document.getElementById("nextReport").value =
-    saved.nextReport || "";
-}
-
-
-function addRequirement(){
 
   const input =
-    document.getElementById("requirementInput");
-
-  const text = input.value.trim();
-
-  if(!text) return;
-
-  requirements.push({
-    text:text,
-    completed:false
-  });
-
-  input.value="";
-
-  saveRequirements();
-  renderRequirements();
-}
+    document.getElementById(
+      "requirementInput"
+    );
 
 
-function toggleRequirement(index){
-
-  if(!requirements[index]) return;
-
-  requirements[index].completed =
-    !requirements[index].completed;
-
-  saveRequirements();
-  renderRequirements();
-}
+  const text =
+    input.value.trim();
 
 
-function deleteRequirement(index){
+  if(!text){
 
-  requirements.splice(index,1);
+    alert(
+      "Enter a supervision requirement."
+    );
 
-  saveRequirements();
-  renderRequirements();
-}
+    return;
 
-
-function saveRequirements(){
-
-  localStorage.setItem(
-    "supervisionRequirements",
-    JSON.stringify(requirements)
-  );
-
-  const completed =
-    requirements.filter(item => item.completed).length;
-
-  localStorage.setItem(
-    "supervisionRequirementsCompleted",
-    completed
-  );
-
-  localStorage.setItem(
-    "supervisionRequirementsTotal",
-    requirements.length
-  );
-}
+  }
 
 
-function renderRequirements(){
+  try{
+
+    await addDoc(
+
+      collection(
+        db,
+        "users",
+        currentUser.uid,
+        "supervisionRequirements"
+      ),
+
+      {
+        text:text,
+        completed:false,
+        createdAt:
+          new Date().toISOString()
+      }
+
+    );
+
+
+    input.value = "";
+
+
+    await loadRequirements();
+
+
+  }catch(error){
+
+    console.error(
+      "Requirement save error:",
+      error
+    );
+
+
+    alert(
+      "The requirement could not be saved."
+    );
+
+  }
+
+};
+
+
+/* =========================
+   COMPLETE / UNDO
+========================= */
+
+window.toggleRequirement =
+async function(id,currentStatus){
+
+  if(!currentUser){
+    return;
+  }
+
+
+  try{
+
+    await updateDoc(
+
+      doc(
+        db,
+        "users",
+        currentUser.uid,
+        "supervisionRequirements",
+        id
+      ),
+
+      {
+        completed:
+          !currentStatus,
+
+        updatedAt:
+          new Date().toISOString()
+      }
+
+    );
+
+
+    await loadRequirements();
+
+
+  }catch(error){
+
+    console.error(
+      "Requirement update error:",
+      error
+    );
+
+  }
+
+};
+
+
+/* =========================
+   DELETE REQUIREMENT
+========================= */
+
+window.deleteRequirement =
+async function(id){
+
+  if(!currentUser){
+    return;
+  }
+
+
+  const confirmed =
+    confirm(
+      "Delete this supervision requirement?"
+    );
+
+
+  if(!confirmed){
+    return;
+  }
+
+
+  try{
+
+    await deleteDoc(
+
+      doc(
+        db,
+        "users",
+        currentUser.uid,
+        "supervisionRequirements",
+        id
+      )
+
+    );
+
+
+    await loadRequirements();
+
+
+  }catch(error){
+
+    console.error(
+      "Requirement delete error:",
+      error
+    );
+
+  }
+
+};
+
+
+/* =========================
+   LOAD REQUIREMENTS
+========================= */
+
+async function loadRequirements(){
 
   const list =
-    document.getElementById("requirementsList");
+    document.getElementById(
+      "requirementsList"
+    );
 
-  list.innerHTML="";
 
-  requirements.forEach((item,index)=>{
+  list.innerHTML = "";
 
-    const div=document.createElement("div");
 
-    div.className =
-      "requirement" +
-      (item.completed ? " completed" : "");
+  let total = 0;
 
-    const text=document.createElement("span");
-    text.textContent=item.text;
+  let completed = 0;
 
-    const buttons=document.createElement("div");
 
-    const done=document.createElement("button");
-    done.type="button";
-    done.textContent =
-      item.completed ? "Undo" : "Done";
+  try{
 
-    done.onclick=function(){
-      toggleRequirement(index);
-    };
+    const q =
+      query(
 
-    const remove=document.createElement("button");
-    remove.type="button";
-    remove.textContent="X";
+        collection(
+          db,
+          "users",
+          currentUser.uid,
+          "supervisionRequirements"
+        ),
 
-    remove.onclick=function(){
-      deleteRequirement(index);
-    };
+        orderBy(
+          "createdAt",
+          "asc"
+        )
 
-    buttons.appendChild(done);
-    buttons.appendChild(remove);
+      );
 
-    div.appendChild(text);
-    div.appendChild(buttons);
 
-    list.appendChild(div);
-  });
+    const snapshot =
+      await getDocs(q);
 
-  saveRequirements();
+
+    if(snapshot.empty){
+
+      list.innerHTML =
+        "<p>No supervision requirements added yet.</p>";
+
+    }
+
+
+    snapshot.forEach(
+      (documentSnapshot) => {
+
+
+        const data =
+          documentSnapshot.data();
+
+
+        const id =
+          documentSnapshot.id;
+
+
+        total++;
+
+
+        if(data.completed){
+          completed++;
+        }
+
+
+        const item =
+          document.createElement("div");
+
+
+        item.className =
+          "requirement" +
+          (
+            data.completed
+            ? " completed"
+            : ""
+          );
+
+
+        const text =
+          document.createElement("div");
+
+
+        text.textContent =
+          data.text ||
+          "Requirement";
+
+
+        item.appendChild(text);
+
+
+        const buttons =
+          document.createElement("div");
+
+
+        buttons.className =
+          "requirement-buttons";
+
+
+        const doneButton =
+          document.createElement("button");
+
+
+        doneButton.type =
+          "button";
+
+
+        doneButton.className =
+          "done-btn";
+
+
+        doneButton.textContent =
+          data.completed
+          ? "Undo"
+          : "✓ Done";
+
+
+        doneButton.onclick =
+          function(){
+
+            toggleRequirement(
+              id,
+              Boolean(data.completed)
+            );
+
+          };
+
+
+        buttons.appendChild(
+          doneButton
+        );
+
+
+        const deleteButton =
+          document.createElement("button");
+
+
+        deleteButton.type =
+          "button";
+
+
+        deleteButton.className =
+          "delete-btn";
+
+
+        deleteButton.textContent =
+          "Delete";
+
+
+        deleteButton.onclick =
+          function(){
+
+            deleteRequirement(id);
+
+          };
+
+
+        buttons.appendChild(
+          deleteButton
+        );
+
+
+        item.appendChild(
+          buttons
+        );
+
+
+        list.appendChild(
+          item
+        );
+
+      });
+
+
+    document.getElementById(
+      "completedCount"
+    ).textContent =
+      completed;
+
+
+    document.getElementById(
+      "remainingCount"
+    ).textContent =
+      total - completed;
+
+
+    /*
+    Keep these temporarily so the
+    current dashboard still understands
+    supervision progress.
+    */
+
+    localStorage.setItem(
+      "supervisionRequirementsCompleted",
+      completed
+    );
+
+
+    localStorage.setItem(
+      "supervisionRequirementsTotal",
+      total
+    );
+
+
+  }catch(error){
+
+    console.error(
+      "Requirement load error:",
+      error
+    );
+
+
+    list.innerHTML =
+      "<p>Requirements could not be loaded.</p>";
+
+  }
+
 }
 
 
-function saveHours(){
+/* =========================
+   COMMUNITY SERVICE
+========================= */
+
+window.saveHours =
+async function(){
+
+  if(!currentUser){
+    return;
+  }
+
 
   const required =
-    Number(document.getElementById("requiredHours").value) || 0;
+    Number(
+      document.getElementById(
+        "requiredHours"
+      ).value
+    ) || 0;
+
 
   const completed =
-    Number(document.getElementById("completedHours").value) || 0;
-
-  localStorage.setItem(
-    "communityServiceRequired",
-    required
-  );
-
-  localStorage.setItem(
-    "communityServiceCompleted",
-    completed
-  );
-
-  updateHoursStatus();
-}
+    Number(
+      document.getElementById(
+        "completedHours"
+      ).value
+    ) || 0;
 
 
-function updateHoursStatus(){
+  try{
+
+    await setDoc(
+
+      supervisionRef(),
+
+      {
+        communityServiceRequired:
+          required,
+
+        communityServiceCompleted:
+          completed,
+
+        updatedAt:
+          new Date().toISOString()
+      },
+
+      {merge:true}
+
+    );
+
+
+    updateHoursDisplay({
+      communityServiceRequired:
+        required,
+
+      communityServiceCompleted:
+        completed
+    });
+
+
+  }catch(error){
+
+    console.error(
+      "Community service save error:",
+      error
+    );
+
+  }
+
+};
+
+
+function updateHoursDisplay(data){
 
   const required =
-    Number(localStorage.getItem("communityServiceRequired")) || 0;
+    Number(
+      data.communityServiceRequired
+    ) || 0;
+
 
   const completed =
-    Number(localStorage.getItem("communityServiceCompleted")) || 0;
+    Number(
+      data.communityServiceCompleted
+    ) || 0;
+
 
   const remaining =
-    Math.max(required-completed,0);
+    Math.max(
+      required - completed,
+      0
+    );
 
-  document.getElementById("requiredHours").value =
-    required || "";
 
-  document.getElementById("completedHours").value =
-    completed || "";
+  const area =
+    document.getElementById(
+      "hoursStatus"
+    );
 
-  document.getElementById("hoursStatus").innerText =
-    remaining === 0 && required > 0
-      ? "Community service requirement completed."
-      : remaining + " hours remaining";
+
+  if(required === 0){
+
+    area.textContent =
+      "No community service hours entered.";
+
+  }else if(remaining === 0){
+
+    area.textContent =
+      "Community service requirement completed.";
+
+  }else{
+
+    area.textContent =
+      remaining +
+      " hours remaining";
+
+  }
+
 }
 
 
-function saveFees(){
+/* =========================
+   FEES
+========================= */
+
+window.saveFees =
+async function(){
+
+  if(!currentUser){
+    return;
+  }
+
 
   const owed =
-    Number(document.getElementById("feesOwed").value) || 0;
+    Number(
+      document.getElementById(
+        "feesOwed"
+      ).value
+    ) || 0;
+
 
   const paid =
-    Number(document.getElementById("feesPaid").value) || 0;
-
-  localStorage.setItem("supervisionFeesOwed",owed);
-  localStorage.setItem("supervisionFeesPaid",paid);
-
-  updateFeesStatus();
-}
+    Number(
+      document.getElementById(
+        "feesPaid"
+      ).value
+    ) || 0;
 
 
-function updateFeesStatus(){
+  try{
+
+    await setDoc(
+
+      supervisionRef(),
+
+      {
+        feesOwed:owed,
+        feesPaid:paid,
+        updatedAt:
+          new Date().toISOString()
+      },
+
+      {merge:true}
+
+    );
+
+
+    updateFeesDisplay({
+      feesOwed:owed,
+      feesPaid:paid
+    });
+
+
+  }catch(error){
+
+    console.error(
+      "Fee save error:",
+      error
+    );
+
+  }
+
+};
+
+
+function updateFeesDisplay(data){
 
   const owed =
-    Number(localStorage.getItem("supervisionFeesOwed")) || 0;
+    Number(
+      data.feesOwed
+    ) || 0;
+
 
   const paid =
-    Number(localStorage.getItem("supervisionFeesPaid")) || 0;
+    Number(
+      data.feesPaid
+    ) || 0;
+
 
   const remaining =
-    Math.max(owed-paid,0);
+    Math.max(
+      owed - paid,
+      0
+    );
 
-  document.getElementById("feesOwed").value =
-    owed || "";
 
-  document.getElementById("feesPaid").value =
-    paid || "";
+  document.getElementById(
+    "feesStatus"
+  ).textContent =
+    "$" +
+    remaining.toFixed(2) +
+    " remaining";
 
-  document.getElementById("feesStatus").innerText =
-    "$" + remaining.toFixed(2) + " remaining";
 }
 
 
-function saveNotes(){
+/* =========================
+   NOTES
+========================= */
+
+window.saveNotes =
+async function(){
+
+  if(!currentUser){
+    return;
+  }
+
 
   const notes =
-    document.getElementById("supervisionNotes").value;
-
-  localStorage.setItem(
-    "supervisionNotes",
-    notes
-  );
-
-  document.getElementById("notesMessage").innerText =
-    "Notes saved.";
-}
+    document.getElementById(
+      "supervisionNotes"
+    ).value.trim();
 
 
-function loadNotes(){
+  try{
 
-  document.getElementById("supervisionNotes").value =
-    localStorage.getItem("supervisionNotes") || "";
-}
+    await setDoc(
+
+      supervisionRef(),
+
+      {
+        notes:notes,
+        updatedAt:
+          new Date().toISOString()
+      },
+
+      {merge:true}
+
+    );
 
 
-loadSupervision();
-renderRequirements();
-updateHoursStatus();
-updateFeesStatus();
-loadNotes();
+    document.getElementById(
+      "notesMessage"
+    ).textContent =
+      "Notes saved.";
+
+
+  }catch(error){
+
+    console.error(
+      "Notes save error:",
+      error
+    );
+
+  }
+
+};
 
 </script>
 
