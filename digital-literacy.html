@@ -161,41 +161,283 @@ button.secondary {
 
 </main>
 
-<script>
-function goBack() {
-  if (window.history.length > 1) {
-    window.history.back();
+<script type="module">
+
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+
+import {
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  deleteDoc
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA4O2nEtjdy9fSh66gnHH6jsbKKSWdJt4c",
+  authDomain: "a-new-me-1a17a.firebaseapp.com",
+  projectId: "a-new-me-1a17a",
+  storageBucket: "a-new-me-1a17a.firebasestorage.app",
+  messagingSenderId: "362235516132",
+  appId: "1:362235516132:web:1465c3ec03ce1d3f4608f1"
+};
+
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+
+const notesArea =
+  document.getElementById("notes");
+
+const saveStatus =
+  document.getElementById("saveStatus");
+
+const clearNotesBtn =
+  document.getElementById("clearNotesBtn");
+
+let saveTimer = null;
+
+
+/* =========================
+   AUTH
+========================= */
+
+onAuthStateChanged(auth, async (user) => {
+
+  if (!user) {
+    window.location.href = "auth.html";
     return;
   }
-  window.location.href = 'index.html';
+
+  currentUser = user;
+
+  await loadNotes();
+
+});
+
+
+/* =========================
+   FIREBASE REFERENCE
+========================= */
+
+function notesRef() {
+
+  return doc(
+    db,
+    "users",
+    currentUser.uid,
+    "digitalLiteracy",
+    "notes"
+  );
+
 }
 
-const notesArea = document.getElementById('notes');
-const saveStatus = document.getElementById('saveStatus');
-const clearNotesBtn = document.getElementById('clearNotesBtn');
 
-function saveNotes() {
-  localStorage.setItem('digitalNotes', notesArea.value);
-  saveStatus.textContent = `Saved at ${new Date().toLocaleTimeString()}.`;
-}
+/* =========================
+   SAVE NOTES
+========================= */
 
-function loadNotes() {
-  const saved = localStorage.getItem('digitalNotes');
-  if (saved) {
-    notesArea.value = saved;
-    saveStatus.textContent = 'Loaded your previous notes from this device.';
+async function saveNotes() {
+
+  if (!currentUser) return;
+
+  try {
+
+    await setDoc(
+      notesRef(),
+      {
+        notes: notesArea.value,
+
+        updatedAt:
+          new Date().toISOString()
+      },
+      {
+        merge: true
+      }
+    );
+
+
+    saveStatus.textContent =
+      "Notes saved.";
+
+  } catch (error) {
+
+    console.error(
+      "Digital literacy notes save error:",
+      error
+    );
+
+    saveStatus.textContent =
+      "Notes could not be saved.";
+
   }
+
 }
 
-function clearNotes() {
-  notesArea.value = '';
-  localStorage.removeItem('digitalNotes');
-  saveStatus.textContent = 'Notes cleared.';
+
+/* =========================
+   AUTO SAVE
+========================= */
+
+notesArea.addEventListener(
+  "input",
+  function() {
+
+    saveStatus.textContent =
+      "Saving...";
+
+
+    clearTimeout(saveTimer);
+
+
+    saveTimer = setTimeout(
+      saveNotes,
+      700
+    );
+
+  }
+);
+
+
+/* =========================
+   LOAD NOTES
+========================= */
+
+async function loadNotes() {
+
+  if (!currentUser) return;
+
+  try {
+
+    const snapshot =
+      await getDoc(
+        notesRef()
+      );
+
+
+    if (snapshot.exists()) {
+
+      const data =
+        snapshot.data();
+
+
+      notesArea.value =
+        data.notes || "";
+
+
+      saveStatus.textContent =
+        "Your saved notes are loaded.";
+
+    } else {
+
+      saveStatus.textContent =
+        "Notes save automatically.";
+
+    }
+
+  } catch (error) {
+
+    console.error(
+      "Digital literacy notes load error:",
+      error
+    );
+
+
+    saveStatus.textContent =
+      "Notes could not be loaded.";
+
+  }
+
 }
 
-notesArea.addEventListener('input', saveNotes);
-clearNotesBtn.addEventListener('click', clearNotes);
-loadNotes();
+
+/* =========================
+   CLEAR NOTES
+========================= */
+
+async function clearNotes() {
+
+  if (!currentUser) return;
+
+
+  const confirmed =
+    confirm(
+      "Clear your learning notes?"
+    );
+
+
+  if (!confirmed) {
+    return;
+  }
+
+
+  try {
+
+    clearTimeout(saveTimer);
+
+    notesArea.value = "";
+
+    await deleteDoc(
+      notesRef()
+    );
+
+
+    saveStatus.textContent =
+      "Notes cleared.";
+
+  } catch (error) {
+
+    console.error(
+      "Digital literacy notes clear error:",
+      error
+    );
+
+
+    saveStatus.textContent =
+      "Notes could not be cleared.";
+
+  }
+
+}
+
+
+clearNotesBtn.addEventListener(
+  "click",
+  clearNotes
+);
+
+
+/* =========================
+   BACK
+========================= */
+
+window.goBack =
+function() {
+
+  if (document.referrer) {
+
+    history.back();
+
+  } else {
+
+    window.location.href =
+      "index.html";
+
+  }
+
+};
+
 </script>
 
 </body>
