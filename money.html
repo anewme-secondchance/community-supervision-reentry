@@ -42,6 +42,317 @@
 </div>
 </div>
 </div>
-<script>function goBack(){if(window.history.length>1){window.history.back();return;}window.location.href='index.html';}function calculateBudget(){const n=id=>parseFloat(document.getElementById(id).value)||0;const income=n('income');const total=n('rent')+n('utilities')+n('food')+n('transportation')+n('other');budgetResult.innerText='Remaining after expenses: $'+(income-total).toFixed(2);}function saveMoneyPlan(){const ids=['income','rent','utilities','food','transportation','other','savingsGoal'];const plan={};ids.forEach(id=>plan[id]=document.getElementById(id).value);localStorage.setItem('moneyPlan',JSON.stringify(plan));savedMessage.innerText=`Financial plan saved at ${new Date().toLocaleTimeString()}.`;}function loadMoneyPlan(){const s=JSON.parse(localStorage.getItem('moneyPlan'));if(!s)return;Object.keys(s).forEach(k=>{if(document.getElementById(k))document.getElementById(k).value=s[k]||'';});savedMessage.innerText='Loaded your saved financial plan from this device.';}loadMoneyPlan();</script>
+<script type="module">
+
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+
+import {
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA4O2nEtjdy9fSh66gnHH6jsbKKSWdJt4c",
+  authDomain: "a-new-me-1a17a.firebaseapp.com",
+  projectId: "a-new-me-1a17a",
+  storageBucket: "a-new-me-1a17a.firebasestorage.app",
+  messagingSenderId: "362235516132",
+  appId: "1:362235516132:web:1465c3ec03ce1d3f4608f1"
+};
+
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+
+
+/* =========================
+   AUTH
+========================= */
+
+onAuthStateChanged(auth, async (user) => {
+
+  if (!user) {
+    window.location.href = "auth.html";
+    return;
+  }
+
+  currentUser = user;
+
+  await loadMoneyPlan();
+
+});
+
+
+/* =========================
+   BACK
+========================= */
+
+window.goBack = function() {
+
+  if (document.referrer) {
+    history.back();
+  } else {
+    window.location.href = "index.html";
+  }
+
+};
+
+
+/* =========================
+   FIREBASE REFERENCE
+========================= */
+
+function moneyRef() {
+
+  return doc(
+    db,
+    "users",
+    currentUser.uid,
+    "money",
+    "plan"
+  );
+
+}
+
+
+/* =========================
+   CALCULATE BUDGET
+========================= */
+
+window.calculateBudget = function() {
+
+  const numberValue = (id) =>
+    parseFloat(
+      document.getElementById(id).value
+    ) || 0;
+
+
+  const income =
+    numberValue("income");
+
+
+  const expenses =
+    numberValue("rent") +
+    numberValue("utilities") +
+    numberValue("food") +
+    numberValue("transportation") +
+    numberValue("other");
+
+
+  const remaining =
+    income - expenses;
+
+
+  document.getElementById(
+    "budgetResult"
+  ).textContent =
+    "Remaining after expenses: $" +
+    remaining.toFixed(2);
+
+};
+
+
+/* =========================
+   SAVE FINANCIAL PLAN
+========================= */
+
+window.saveMoneyPlan =
+async function() {
+
+  if (!currentUser) return;
+
+
+  const ids = [
+    "income",
+    "rent",
+    "utilities",
+    "food",
+    "transportation",
+    "other",
+    "savingsGoal"
+  ];
+
+
+  const plan = {};
+
+
+  ids.forEach((id) => {
+
+    plan[id] =
+      document.getElementById(id).value;
+
+  });
+
+
+  const income =
+    parseFloat(plan.income) || 0;
+
+
+  const totalExpenses =
+    (parseFloat(plan.rent) || 0) +
+    (parseFloat(plan.utilities) || 0) +
+    (parseFloat(plan.food) || 0) +
+    (parseFloat(plan.transportation) || 0) +
+    (parseFloat(plan.other) || 0);
+
+
+  const remaining =
+    income - totalExpenses;
+
+
+  const completed =
+    Boolean(
+      plan.income &&
+      plan.savingsGoal
+    );
+
+
+  try {
+
+    await setDoc(
+      moneyRef(),
+      {
+        ...plan,
+
+        totalExpenses:
+          totalExpenses,
+
+        remaining:
+          remaining,
+
+        completed:
+          completed,
+
+        updatedAt:
+          new Date().toISOString()
+      },
+      {
+        merge: true
+      }
+    );
+
+
+    document.getElementById(
+      "budgetResult"
+    ).textContent =
+      "Remaining after expenses: $" +
+      remaining.toFixed(2);
+
+
+    document.getElementById(
+      "savedMessage"
+    ).textContent =
+      "Financial plan saved.";
+
+
+  } catch (error) {
+
+    console.error(
+      "Financial plan save error:",
+      error
+    );
+
+
+    document.getElementById(
+      "savedMessage"
+    ).textContent =
+      "Financial plan could not be saved.";
+
+  }
+
+};
+
+
+/* =========================
+   LOAD FINANCIAL PLAN
+========================= */
+
+async function loadMoneyPlan() {
+
+  if (!currentUser) return;
+
+
+  try {
+
+    const snapshot =
+      await getDoc(
+        moneyRef()
+      );
+
+
+    if (!snapshot.exists()) {
+      return;
+    }
+
+
+    const saved =
+      snapshot.data();
+
+
+    const ids = [
+      "income",
+      "rent",
+      "utilities",
+      "food",
+      "transportation",
+      "other",
+      "savingsGoal"
+    ];
+
+
+    ids.forEach((id) => {
+
+      document.getElementById(id).value =
+        saved[id] ?? "";
+
+    });
+
+
+    if (
+      saved.remaining !== undefined
+    ) {
+
+      document.getElementById(
+        "budgetResult"
+      ).textContent =
+        "Remaining after expenses: $" +
+        Number(
+          saved.remaining
+        ).toFixed(2);
+
+    }
+
+
+    document.getElementById(
+      "savedMessage"
+    ).textContent =
+      "Your saved financial plan is loaded.";
+
+
+  } catch (error) {
+
+    console.error(
+      "Financial plan load error:",
+      error
+    );
+
+  }
+
+}
+
+</script>
 </body>
 </html>
