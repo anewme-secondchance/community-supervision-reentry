@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -21,7 +21,8 @@ body {
   padding: 15px;
 }
 
-.back-btn, .logout-btn {
+.back-btn,
+.logout-btn {
   background: white;
   color: #1f3c88;
   border: none;
@@ -45,12 +46,21 @@ body {
   box-shadow: 0 4px 10px rgba(0,0,0,0.08);
 }
 
-input {
+input,
+select,
+textarea {
   width: 100%;
   padding: 10px;
   border-radius: 8px;
   border: 1px solid #ccc;
   margin-top: 8px;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+textarea {
+  resize: vertical;
 }
 
 button {
@@ -70,38 +80,187 @@ button {
   border-radius: 8px;
   margin-bottom: 10px;
 }
+
+.appointment-item {
+  background: #f4f6fb;
+  padding: 15px;
+  border-radius: 10px;
+  margin-top: 12px;
+  border-left: 5px solid #1f3c88;
+}
+
+.appointment-item.completed {
+  border-left-color: #198754;
+  opacity: 0.75;
+}
+
+.appointment-item.missed {
+  border-left-color: #b42318;
+}
+
+.appointment-type {
+  color: #1f3c88;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.status {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: bold;
+  margin-top: 8px;
+}
+
+.status-upcoming {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-completed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-missed {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.complete-btn {
+  background: #198754;
+  margin-right: 8px;
+}
+
+.delete-btn {
+  background: #b42318;
+}
+
+.empty-message {
+  color: #666;
+}
 </style>
 </head>
 
 <body>
 
 <div class="app-header">
-  <button onclick="goBack()" class="back-btn">← Back</button>
+
+  <button type="button" onclick="goBack()" class="back-btn">
+    ← Back
+  </button>
+
   <div>Appointment Tracker</div>
-  <button onclick="logout()" class="logout-btn">Logout</button>
+
+  <button type="button" onclick="logout()" class="logout-btn">
+    Logout
+  </button>
+
 </div>
 
 <div class="container">
 
-<div id="notificationArea"></div>
+  <div id="notificationArea"></div>
 
-<div class="card">
-<h3>Add Appointment</h3>
-<input type="text" id="apptName" placeholder="Appointment Name">
-<input type="datetime-local" id="apptDate">
-<button onclick="addAppointment()">Add Appointment</button>
+  <div class="card">
+
+    <h3>Add Appointment</h3>
+
+    <label for="apptType">Appointment Type</label>
+
+    <select id="apptType">
+      <option value="">Select Appointment Type</option>
+      <option value="Probation / Parole Meeting">
+        Probation / Parole Meeting
+      </option>
+      <option value="Court">Court</option>
+      <option value="Treatment / Counseling">
+        Treatment / Counseling
+      </option>
+      <option value="Program / Class">
+        Program / Class
+      </option>
+      <option value="Community Service">
+        Community Service
+      </option>
+      <option value="Employment">
+        Employment
+      </option>
+      <option value="Housing">
+        Housing
+      </option>
+      <option value="Medical">
+        Medical
+      </option>
+      <option value="Education">
+        Education
+      </option>
+      <option value="Other">
+        Other
+      </option>
+    </select>
+
+
+    <label for="apptName">Appointment Name</label>
+
+    <input
+      type="text"
+      id="apptName"
+      placeholder="Example: Monthly Officer Meeting"
+    >
+
+
+    <label for="apptDate">Date & Time</label>
+
+    <input
+      type="datetime-local"
+      id="apptDate"
+    >
+
+
+    <label for="apptLocation">Location</label>
+
+    <input
+      type="text"
+      id="apptLocation"
+      placeholder="Example: Community Supervision Office"
+    >
+
+
+    <label for="apptNotes">Notes</label>
+
+    <textarea
+      id="apptNotes"
+      rows="4"
+      placeholder="Example: Bring employment verification"
+    ></textarea>
+
+
+    <button type="button" onclick="addAppointment()">
+      Add Appointment
+    </button>
+
+  </div>
+
+
+  <div class="card">
+
+    <h3>Your Appointments</h3>
+
+    <div id="apptList"></div>
+
+  </div>
+
 </div>
 
-<div class="card">
-<h3>Your Appointments</h3>
-<div id="apptList"></div>
-</div>
-
-</div>
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+
 import {
   getAuth,
   onAuthStateChanged,
@@ -114,8 +273,12 @@ import {
   addDoc,
   getDocs,
   query,
-  orderBy
+  orderBy,
+  doc,
+  updateDoc,
+  deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyA4O2nEtjdy9fSh66gnHH6jsbKKSWdJt4c",
@@ -126,86 +289,589 @@ const firebaseConfig = {
   appId: "1:362235516132:web:1465c3ec03ce1d3f4608f1"
 };
 
+
 const app = initializeApp(firebaseConfig);
+
 const auth = getAuth(app);
+
 const db = getFirestore(app);
 
-let currentUser;
+let currentUser = null;
+
+
+/* ==============================
+   AUTHENTICATION
+================================ */
 
 onAuthStateChanged(auth, async (user) => {
+
   if (!user) {
+
     window.location.href = "auth.html";
-  } else {
-    currentUser = user;
-    loadAppointments();
-  }
-});
 
-window.logout = function() {
-  signOut(auth).then(() => {
-    window.location.href = "auth.html";
-  });
-};
-
-window.goBack = function() {
-  window.location.href = "index.html";
-};
-
-window.addAppointment = async function() {
-  const name = document.getElementById("apptName").value;
-  const date = document.getElementById("apptDate").value;
-
-  if (!name || !date) {
-    alert("Please fill in both fields.");
     return;
   }
 
-  await addDoc(collection(db, "users", currentUser.uid, "appointments"), {
-    name: name,
-    date: date
-  });
+  currentUser = user;
 
-  document.getElementById("apptName").value = "";
-  document.getElementById("apptDate").value = "";
+  await loadAppointments();
 
-  loadAppointments();
+});
+
+
+/* ==============================
+   LOGOUT
+================================ */
+
+window.logout = async function() {
+
+  await signOut(auth);
+
+  window.location.href = "auth.html";
+
 };
 
+
+/* ==============================
+   BACK BUTTON
+================================ */
+
+window.goBack = function() {
+
+  if (document.referrer) {
+
+    history.back();
+
+  } else {
+
+    window.location.href = "index.html";
+
+  }
+
+};
+
+
+/* ==============================
+   ADD APPOINTMENT
+================================ */
+
+window.addAppointment = async function() {
+
+  if (!currentUser) {
+    return;
+  }
+
+  const type =
+    document.getElementById("apptType").value;
+
+  const name =
+    document.getElementById("apptName").value.trim();
+
+  const date =
+    document.getElementById("apptDate").value;
+
+  const location =
+    document.getElementById("apptLocation").value.trim();
+
+  const notes =
+    document.getElementById("apptNotes").value.trim();
+
+
+  if (!type || !name || !date) {
+
+    alert(
+      "Please select an appointment type and enter the appointment name, date, and time."
+    );
+
+    return;
+  }
+
+
+  try {
+
+    await addDoc(
+      collection(
+        db,
+        "users",
+        currentUser.uid,
+        "appointments"
+      ),
+      {
+        type: type,
+        name: name,
+        date: date,
+        location: location,
+        notes: notes,
+        status: "upcoming",
+        createdAt: new Date().toISOString()
+      }
+    );
+
+
+    document.getElementById("apptType").value = "";
+
+    document.getElementById("apptName").value = "";
+
+    document.getElementById("apptDate").value = "";
+
+    document.getElementById("apptLocation").value = "";
+
+    document.getElementById("apptNotes").value = "";
+
+
+    await loadAppointments();
+
+  } catch (error) {
+
+    console.error("Error adding appointment:", error);
+
+    alert("Appointment could not be saved. Please try again.");
+
+  }
+
+};
+
+
+/* ==============================
+   COMPLETE APPOINTMENT
+================================ */
+
+window.completeAppointment = async function(id) {
+
+  if (!currentUser) {
+    return;
+  }
+
+  try {
+
+    const appointmentRef =
+      doc(
+        db,
+        "users",
+        currentUser.uid,
+        "appointments",
+        id
+      );
+
+
+    await updateDoc(
+      appointmentRef,
+      {
+        status: "completed",
+        completedAt: new Date().toISOString()
+      }
+    );
+
+
+    await loadAppointments();
+
+  } catch (error) {
+
+    console.error(
+      "Error completing appointment:",
+      error
+    );
+
+    alert(
+      "Appointment could not be updated."
+    );
+
+  }
+
+};
+
+
+/* ==============================
+   DELETE APPOINTMENT
+================================ */
+
+window.removeAppointment = async function(id) {
+
+  if (!currentUser) {
+    return;
+  }
+
+  const confirmed =
+    confirm(
+      "Are you sure you want to delete this appointment?"
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+
+  try {
+
+    await deleteDoc(
+      doc(
+        db,
+        "users",
+        currentUser.uid,
+        "appointments",
+        id
+      )
+    );
+
+
+    await loadAppointments();
+
+  } catch (error) {
+
+    console.error(
+      "Error deleting appointment:",
+      error
+    );
+
+    alert(
+      "Appointment could not be deleted."
+    );
+
+  }
+
+};
+
+
+/* ==============================
+   LOAD APPOINTMENTS
+================================ */
+
 async function loadAppointments() {
-  const list = document.getElementById("apptList");
+
+  if (!currentUser) {
+    return;
+  }
+
+
+  const list =
+    document.getElementById("apptList");
+
+  const notifyArea =
+    document.getElementById("notificationArea");
+
+
   list.innerHTML = "";
 
-  const q = query(
-    collection(db, "users", currentUser.uid, "appointments"),
-    orderBy("date")
-  );
-
-  const snapshot = await getDocs(q);
-
-  const now = new Date();
-  const notifyArea = document.getElementById("notificationArea");
   notifyArea.innerHTML = "";
 
-  snapshot.forEach(doc => {
-    const data = doc.data();
-    const apptDate = new Date(data.date);
 
-    list.innerHTML += `
-      <div style="padding:10px;border-bottom:1px solid #eee;">
-        <strong>${data.name}</strong><br>
-        ${apptDate.toLocaleString()}
-      </div>
-    `;
+  try {
 
-    const diffHours = (apptDate - now) / (1000 * 60 * 60);
-    if (diffHours > 0 && diffHours <= 24) {
-      notifyArea.innerHTML += `
-        <div class="notification">
-          Reminder: ${data.name} is within 24 hours!
-        </div>
-      `;
+    const q = query(
+      collection(
+        db,
+        "users",
+        currentUser.uid,
+        "appointments"
+      ),
+      orderBy("date")
+    );
+
+
+    const snapshot =
+      await getDocs(q);
+
+
+    if (snapshot.empty) {
+
+      list.innerHTML =
+        '<p class="empty-message">No appointments added yet.</p>';
+
+      return;
     }
-  });
+
+
+    const now = new Date();
+
+    let nextAppointment = null;
+
+
+    for (const documentSnapshot of snapshot.docs) {
+
+      const data =
+        documentSnapshot.data();
+
+      const id =
+        documentSnapshot.id;
+
+      const apptDate =
+        new Date(data.date);
+
+
+      let status =
+        data.status || "upcoming";
+
+
+      /*
+      If an appointment date has already passed
+      and the user did not mark it completed,
+      show it as Needs Attention.
+      */
+
+      if (
+        status !== "completed" &&
+        apptDate < now
+      ) {
+
+        status = "missed";
+
+      }
+
+
+      const appointment =
+        document.createElement("div");
+
+
+      appointment.className =
+        "appointment-item " + status;
+
+
+      const type =
+        document.createElement("div");
+
+      type.className =
+        "appointment-type";
+
+      type.textContent =
+        data.type || "Appointment";
+
+
+      const title =
+        document.createElement("strong");
+
+      title.textContent =
+        data.name || "Appointment";
+
+
+      const dateLine =
+        document.createElement("p");
+
+      dateLine.textContent =
+        "📅 " + apptDate.toLocaleString();
+
+
+      appointment.appendChild(type);
+
+      appointment.appendChild(title);
+
+      appointment.appendChild(dateLine);
+
+
+      if (data.location) {
+
+        const location =
+          document.createElement("p");
+
+        location.textContent =
+          "📍 " + data.location;
+
+        appointment.appendChild(location);
+
+      }
+
+
+      if (data.notes) {
+
+        const notes =
+          document.createElement("p");
+
+        notes.textContent =
+          "📝 " + data.notes;
+
+        appointment.appendChild(notes);
+
+      }
+
+
+      const statusBadge =
+        document.createElement("span");
+
+
+      statusBadge.className =
+        "status status-" + status;
+
+
+      if (status === "completed") {
+
+        statusBadge.textContent =
+          "Completed";
+
+      } else if (status === "missed") {
+
+        statusBadge.textContent =
+          "Needs Attention";
+
+      } else {
+
+        statusBadge.textContent =
+          "Upcoming";
+
+      }
+
+
+      appointment.appendChild(statusBadge);
+
+
+      const buttonArea =
+        document.createElement("div");
+
+
+      if (status !== "completed") {
+
+        const completeButton =
+          document.createElement("button");
+
+        completeButton.type =
+          "button";
+
+        completeButton.className =
+          "complete-btn";
+
+        completeButton.textContent =
+          "✓ Mark Completed";
+
+
+        completeButton.onclick =
+          function() {
+
+            completeAppointment(id);
+
+          };
+
+
+        buttonArea.appendChild(
+          completeButton
+        );
+
+      }
+
+
+      const deleteButton =
+        document.createElement("button");
+
+      deleteButton.type =
+        "button";
+
+      deleteButton.className =
+        "delete-btn";
+
+      deleteButton.textContent =
+        "Delete";
+
+
+      deleteButton.onclick =
+        function() {
+
+          removeAppointment(id);
+
+        };
+
+
+      buttonArea.appendChild(
+        deleteButton
+      );
+
+
+      appointment.appendChild(
+        buttonArea
+      );
+
+
+      list.appendChild(
+        appointment
+      );
+
+
+      /* 24 HOUR REMINDER */
+
+      const diffHours =
+        (apptDate - now) /
+        (1000 * 60 * 60);
+
+
+      if (
+        status === "upcoming" &&
+        diffHours > 0 &&
+        diffHours <= 24
+      ) {
+
+        const reminder =
+          document.createElement("div");
+
+        reminder.className =
+          "notification";
+
+        reminder.textContent =
+          "Reminder: " +
+          (data.name || "Appointment") +
+          " is within 24 hours!";
+
+
+        notifyArea.appendChild(
+          reminder
+        );
+
+      }
+
+
+      /*
+      Find next upcoming appointment
+      so the dashboard can use it later.
+      */
+
+      if (
+        status === "upcoming" &&
+        apptDate >= now &&
+        !nextAppointment
+      ) {
+
+        nextAppointment = {
+          name: data.name || "Appointment",
+          type: data.type || "Appointment",
+          date: data.date
+        };
+
+      }
+
+    }
+
+
+    /*
+    Temporary dashboard sync.
+
+    Later we can move this information
+    completely into Firebase when we
+    upgrade dashboard.html.
+    */
+
+    if (nextAppointment) {
+
+      localStorage.setItem(
+        "nextAppointment",
+        JSON.stringify(nextAppointment)
+      );
+
+    } else {
+
+      localStorage.removeItem(
+        "nextAppointment"
+      );
+
+    }
+
+
+  } catch (error) {
+
+    console.error(
+      "Error loading appointments:",
+      error
+    );
+
+    list.innerHTML =
+      '<p class="empty-message">Appointments could not be loaded.</p>';
+
+  }
+
 }
 
 </script>
