@@ -123,65 +123,227 @@ button {
 
 </div>
 
-<script>
-function goBack() {
-  if (window.history.length > 1) {
-    window.history.back();
+<script type="module">
+
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+
+import {
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA4O2nEtjdy9fSh66gnHH6jsbKKSWdJt4c",
+  authDomain: "a-new-me-1a17a.firebaseapp.com",
+  projectId: "a-new-me-1a17a",
+  storageBucket: "a-new-me-1a17a.firebasestorage.app",
+  messagingSenderId: "362235516132",
+  appId: "1:362235516132:web:1465c3ec03ce1d3f4608f1"
+};
+
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+
+
+/* =========================
+   AUTH
+========================= */
+
+onAuthStateChanged(auth, async (user) => {
+
+  if (!user) {
+    window.location.href = "auth.html";
     return;
   }
-  window.location.href = 'index.html';
-}
 
-function saveHousingPlan() {
-  const plan = {
-    location: document.getElementById('planLocation').value,
-    budget: document.getElementById('planBudget').value,
-    backup: document.getElementById('planBackup').value
-  };
+  currentUser = user;
 
-  localStorage.setItem('housingPlan', JSON.stringify(plan));
+  await loadHousingPlan();
 
-  localStorage.setItem(
-    'housingPlanCompleted',
-    plan.location && plan.budget ? 'Yes' : 'No'
+});
+
+
+/* =========================
+   BACK
+========================= */
+
+window.goBack = function() {
+
+  if (document.referrer) {
+    history.back();
+  } else {
+    window.location.href = "index.html";
+  }
+
+};
+
+
+/* =========================
+   HOUSING REFERENCE
+========================= */
+
+function housingRef() {
+
+  return doc(
+    db,
+    "users",
+    currentUser.uid,
+    "housing",
+    "plan"
   );
 
-  document.getElementById('savedMessage').innerText =
-    `Housing plan saved at ${new Date().toLocaleTimeString()}.`;
 }
 
-function updateHousingDashboard() {
-  const raw = localStorage.getItem('housingPlan');
 
-  if (!raw) {
-    localStorage.setItem('housingPlanCompleted', 'No');
-    return;
+/* =========================
+   SAVE HOUSING PLAN
+========================= */
+
+window.saveHousingPlan =
+async function() {
+
+  if (!currentUser) return;
+
+
+  const location =
+    document.getElementById(
+      "planLocation"
+    ).value.trim();
+
+
+  const budget =
+    document.getElementById(
+      "planBudget"
+    ).value.trim();
+
+
+  const backup =
+    document.getElementById(
+      "planBackup"
+    ).value.trim();
+
+
+  const completed =
+    Boolean(location && budget);
+
+
+  try {
+
+    await setDoc(
+      housingRef(),
+      {
+        location: location,
+        budget: budget,
+        backup: backup,
+        completed: completed,
+        updatedAt:
+          new Date().toISOString()
+      },
+      {
+        merge: true
+      }
+    );
+
+
+    document.getElementById(
+      "savedMessage"
+    ).textContent =
+      "Housing plan saved.";
+
+
+  } catch (error) {
+
+    console.error(
+      "Housing plan save error:",
+      error
+    );
+
+
+    document.getElementById(
+      "savedMessage"
+    ).textContent =
+      "Housing plan could not be saved.";
+
   }
 
-  const plan = JSON.parse(raw);
+};
 
-  localStorage.setItem(
-    'housingPlanCompleted',
-    plan.location && plan.budget ? 'Yes' : 'No'
-  );
-}
-  
-function loadHousingPlan() {
-  const raw = localStorage.getItem('housingPlan');
-  if (!raw) {
-    return;
+
+/* =========================
+   LOAD HOUSING PLAN
+========================= */
+
+async function loadHousingPlan() {
+
+  if (!currentUser) return;
+
+
+  try {
+
+    const snapshot =
+      await getDoc(
+        housingRef()
+      );
+
+
+    if (!snapshot.exists()) {
+      return;
+    }
+
+
+    const data =
+      snapshot.data();
+
+
+    document.getElementById(
+      "planLocation"
+    ).value =
+      data.location || "";
+
+
+    document.getElementById(
+      "planBudget"
+    ).value =
+      data.budget || "";
+
+
+    document.getElementById(
+      "planBackup"
+    ).value =
+      data.backup || "";
+
+
+    document.getElementById(
+      "savedMessage"
+    ).textContent =
+      "Your saved housing plan is loaded.";
+
+
+  } catch (error) {
+
+    console.error(
+      "Housing plan load error:",
+      error
+    );
+
   }
 
-  const saved = JSON.parse(raw);
-  document.getElementById('planLocation').value = saved.location || '';
-  document.getElementById('planBudget').value = saved.budget || '';
-  document.getElementById('planBackup').value = saved.backup || '';
-  document.getElementById('savedMessage').innerText =
-    'Loaded your saved housing plan from this device.';
 }
 
-loadHousingPlan();
-updateHousingDashboard();
 </script>
 
 </body>
