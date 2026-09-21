@@ -52,6 +52,282 @@
 <p>Stability first. Everything else comes later.</p>
 </div>
 </div>
-<script>function goBack(){if(window.history.length>1){window.history.back();return;}window.location.href='index.html';}const tasks=['task1','task2','task3','task4','task5','task6'];function updateProgress(){let c=0;tasks.forEach(t=>{if(document.getElementById(t).checked)c++;});progressText.innerText=`Progress: ${c} of 6 completed`;progressBar.style.width=(c/tasks.length)*100+'%';}function saveProgress(){tasks.forEach(t=>localStorage.setItem(t,document.getElementById(t).checked));updateProgress();}window.onload=function(){tasks.forEach(t=>document.getElementById(t).checked=localStorage.getItem(t)==='true');updateProgress();};</script>
+<script type="module">
+
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+
+import {
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA4O2nEtjdy9fSh66gnHH6jsbKKSWdJt4c",
+  authDomain: "a-new-me-1a17a.firebaseapp.com",
+  projectId: "a-new-me-1a17a",
+  storageBucket: "a-new-me-1a17a.firebasestorage.app",
+  messagingSenderId: "362235516132",
+  appId: "1:362235516132:web:1465c3ec03ce1d3f4608f1"
+};
+
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+
+
+const tasks = [
+  "task1",
+  "task2",
+  "task3",
+  "task4",
+  "task5",
+  "task6"
+];
+
+
+/* =========================
+   AUTH
+========================= */
+
+onAuthStateChanged(auth, async (user) => {
+
+  if (!user) {
+    window.location.href = "auth.html";
+    return;
+  }
+
+  currentUser = user;
+
+  await loadProgress();
+
+});
+
+
+/* =========================
+   FIREBASE REFERENCE
+========================= */
+
+function firstSevenDaysRef() {
+
+  return doc(
+    db,
+    "users",
+    currentUser.uid,
+    "firstSevenDays",
+    "progress"
+  );
+
+}
+
+
+/* =========================
+   UPDATE SCREEN
+========================= */
+
+function updateProgress() {
+
+  let completed = 0;
+
+
+  tasks.forEach((task) => {
+
+    if (
+      document.getElementById(task)
+        .checked
+    ) {
+
+      completed++;
+
+    }
+
+  });
+
+
+  const percent =
+    Math.round(
+      (completed / tasks.length) * 100
+    );
+
+
+  document.getElementById(
+    "progressText"
+  ).textContent =
+    `Progress: ${completed} of ${tasks.length} completed`;
+
+
+  document.getElementById(
+    "progressBar"
+  ).style.width =
+    percent + "%";
+
+
+  return {
+    completed,
+    percent
+  };
+
+}
+
+
+/* =========================
+   SAVE PROGRESS
+========================= */
+
+window.saveProgress =
+async function() {
+
+  if (!currentUser) return;
+
+
+  const taskData = {};
+
+
+  tasks.forEach((task) => {
+
+    taskData[task] =
+      document.getElementById(task)
+        .checked;
+
+  });
+
+
+  const progress =
+    updateProgress();
+
+
+  try {
+
+    await setDoc(
+      firstSevenDaysRef(),
+      {
+        tasks: taskData,
+
+        completedCount:
+          progress.completed,
+
+        totalTasks:
+          tasks.length,
+
+        percent:
+          progress.percent,
+
+        completed:
+          progress.completed ===
+          tasks.length,
+
+        updatedAt:
+          new Date().toISOString()
+      },
+      {
+        merge: true
+      }
+    );
+
+  } catch (error) {
+
+    console.error(
+      "First 7 Days save error:",
+      error
+    );
+
+
+    document.getElementById(
+      "progressText"
+    ).textContent =
+      "Progress could not be saved.";
+
+  }
+
+};
+
+
+/* =========================
+   LOAD PROGRESS
+========================= */
+
+async function loadProgress() {
+
+  if (!currentUser) return;
+
+
+  try {
+
+    const snapshot =
+      await getDoc(
+        firstSevenDaysRef()
+      );
+
+
+    if (snapshot.exists()) {
+
+      const data =
+        snapshot.data();
+
+
+      const savedTasks =
+        data.tasks || {};
+
+
+      tasks.forEach((task) => {
+
+        document.getElementById(
+          task
+        ).checked =
+          savedTasks[task] === true;
+
+      });
+
+    }
+
+
+    updateProgress();
+
+
+  } catch (error) {
+
+    console.error(
+      "First 7 Days load error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================
+   BACK
+========================= */
+
+window.goBack =
+function() {
+
+  if (document.referrer) {
+
+    history.back();
+
+  } else {
+
+    window.location.href =
+      "index.html";
+
+  }
+
+};
+
+</script>
 </body>
 </html>
