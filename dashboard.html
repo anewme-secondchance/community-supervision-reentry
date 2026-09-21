@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Progress Dashboard | A New Me</title>
 
 <style>
@@ -16,6 +17,25 @@ body{
   background:#1f3c88;
   color:white;
   padding:15px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.header-title{
+  font-size:20px;
+  font-weight:bold;
+}
+
+.back-btn,
+.logout-btn{
+  background:white;
+  color:#1f3c88;
+  border:none;
+  padding:8px 14px;
+  border-radius:20px;
+  cursor:pointer;
+  font-weight:bold;
 }
 
 .container{
@@ -38,124 +58,1159 @@ body{
   color:#1f3c88;
 }
 
-.back-btn{
-  background:white;
-  color:#1f3c88;
-  border:none;
-  padding:8px 14px;
+.progress-bar{
+  width:100%;
+  height:18px;
+  background:#ddd;
   border-radius:20px;
-  cursor:pointer;
+  overflow:hidden;
+  margin-top:10px;
+}
+
+.progress-fill{
+  height:100%;
+  width:0%;
+  background:#1f3c88;
+  transition:width .4s ease;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:
+    repeat(auto-fit,minmax(240px,1fr));
+  gap:15px;
+}
+
+.dashboard-box{
+  background:#f4f6fb;
+  padding:15px;
+  border-radius:10px;
+}
+
+.dashboard-box h3{
+  margin-top:0;
+  color:#1f3c88;
+}
+
+.status-good{
+  color:#198754;
+  font-weight:bold;
+}
+
+.status-attention{
+  color:#b42318;
+  font-weight:bold;
+}
+
+.link-btn{
+  display:inline-block;
+  background:#1f3c88;
+  color:white;
+  text-decoration:none;
+  padding:8px 12px;
+  border-radius:6px;
+  margin-top:8px;
+}
+
+.next-appt{
+  background:#e8f0ff;
+  padding:12px;
+  border-radius:8px;
+  margin-top:10px;
+}
+
+.loading{
+  color:#666;
 }
 </style>
-
 </head>
 
 <body>
 
 <div class="header">
-  <button onclick="history.back()" class="back-btn">
+
+  <button
+    type="button"
+    onclick="goBack()"
+    class="back-btn">
     ← Back
   </button>
 
-  <h2>Progress Dashboard</h2>
+  <div class="header-title">
+    Progress Dashboard
+  </div>
+
+  <button
+    type="button"
+    onclick="logout()"
+    class="logout-btn">
+    Logout
+  </button>
+
 </div>
+
 
 <div class="container">
 
-  <div class="card">
-    <h3>Overall Progress</h3>
 
-    <p>
-      <span class="big" id="overallProgress">0%</span>
-    </p>
+<!-- OVERALL PROGRESS -->
 
-    <p>
-      Keep moving forward. Progress over perfection.
-    </p>
+<div class="card">
+
+  <h2>My Progress</h2>
+
+  <p>
+    <span
+      class="big"
+      id="overallProgress">
+      0%
+    </span>
+  </p>
+
+  <div class="progress-bar">
+
+    <div
+      class="progress-fill"
+      id="progressFill">
+    </div>
+
   </div>
 
-  <div class="card">
-    <h3>Employment</h3>
-
-    <p>
-      Total Applications:
-      <span class="big" id="employmentTotal">0</span>
-    </p>
-
-    <p>
-      Interviews:
-      <span class="big" id="employmentInterviews">0</span>
-    </p>
-
-    <p>
-      Follow Ups:
-      <span class="big" id="employmentFollowUps">0</span>
-    </p>
-
-    <p>
-      Hired:
-      <span class="big" id="employmentHired">0</span>
-    </p>
-  </div>
-
-  <div class="card">
-    <h3>Housing</h3>
-
-    <p>
-      Housing Plan Completed:
-      <span class="big" id="housingStatus">No</span>
-    </p>
-  </div>
-
-  <div class="card">
-    <h3>Education</h3>
-
-    <p>
-      Education Plan Completed:
-      <span class="big" id="educationStatus">No</span>
-    </p>
-  </div>
+  <p>
+    Keep moving forward.
+    Progress over perfection.
+  </p>
 
 </div>
 
-<script>
 
-document.getElementById('employmentTotal').innerText =
-  localStorage.getItem('employmentTotal') || 0;
+<!-- NEXT APPOINTMENT -->
 
-document.getElementById('employmentInterviews').innerText =
-  localStorage.getItem('employmentInterviews') || 0;
+<div class="card">
 
-document.getElementById('employmentFollowUps').innerText =
-  localStorage.getItem('employmentFollowUps') || 0;
+  <h3>📅 Next Appointment</h3>
 
-document.getElementById('employmentHired').innerText =
-  localStorage.getItem('employmentHired') || 0;
+  <div
+    id="nextAppointment"
+    class="loading">
 
-document.getElementById('housingStatus').innerText =
-  localStorage.getItem('housingPlanCompleted') || 'No';
+    Checking appointments...
 
-document.getElementById('educationStatus').innerText =
-  localStorage.getItem('educationPlanCompleted') || 'No';
+  </div>
 
-let completed = 0;
+  <a
+    href="appointments.html"
+    class="link-btn">
 
-if ((localStorage.getItem('housingPlanCompleted') || 'No') === 'Yes') {
-  completed++;
+    View Appointments
+
+  </a>
+
+</div>
+
+
+<!-- DASHBOARD GRID -->
+
+<div class="grid">
+
+
+<!-- SUPERVISION -->
+
+<div class="dashboard-box">
+
+  <h3>🛡️ Supervision</h3>
+
+  <p>
+    Requirements Completed:
+  </p>
+
+  <div
+    class="big"
+    id="supervisionProgress">
+    0 / 0
+  </div>
+
+  <a
+    href="supervision.html"
+    class="link-btn">
+
+    My Supervision
+
+  </a>
+
+</div>
+
+
+<!-- GOALS -->
+
+<div class="dashboard-box">
+
+  <h3>🎯 Goals</h3>
+
+  <p>
+    Goals Completed:
+  </p>
+
+  <div
+    class="big"
+    id="goalsProgress">
+    0 / 0
+  </div>
+
+  <a
+    href="goals.html"
+    class="link-btn">
+
+    View Goals
+
+  </a>
+
+</div>
+
+
+<!-- HELP -->
+
+<div class="dashboard-box">
+
+  <h3>🆘 I Need Help</h3>
+
+  <p>
+    Active Help Requests:
+  </p>
+
+  <div
+    class="big"
+    id="activeBarriers">
+    0
+  </div>
+
+  <p id="barrierMessage"></p>
+
+  <a
+    href="barriers.html"
+    class="link-btn">
+
+    Get Help
+
+  </a>
+
+</div>
+
+
+<!-- DOCUMENTS -->
+
+<div class="dashboard-box">
+
+  <h3>📁 Proof & Documents</h3>
+
+  <p>
+    Documents Ready:
+  </p>
+
+  <div
+    class="big"
+    id="documentsReady">
+    0
+  </div>
+
+  <p>
+    Still Needed:
+    <strong id="documentsNeeded">
+      0
+    </strong>
+  </p>
+
+  <a
+    href="documents.html"
+    class="link-btn">
+
+    My Documents
+
+  </a>
+
+</div>
+
+
+<!-- EMPLOYMENT -->
+
+<div class="dashboard-box">
+
+  <h3>💼 Employment</h3>
+
+  <p>
+    Applications:
+    <strong id="employmentTotal">
+      0
+    </strong>
+  </p>
+
+  <p>
+    Interviews:
+    <strong id="employmentInterviews">
+      0
+    </strong>
+  </p>
+
+  <p>
+    Follow Ups:
+    <strong id="employmentFollowUps">
+      0
+    </strong>
+  </p>
+
+  <p>
+    Hired:
+    <strong id="employmentHired">
+      0
+    </strong>
+  </p>
+
+  <a
+    href="employment.html"
+    class="link-btn">
+
+    Employment
+
+  </a>
+
+</div>
+
+
+<!-- HOUSING -->
+
+<div class="dashboard-box">
+
+  <h3>🏠 Housing</h3>
+
+  <p>
+    Housing Plan:
+  </p>
+
+  <div
+    class="big"
+    id="housingStatus">
+    No
+  </div>
+
+  <a
+    href="housing.html"
+    class="link-btn">
+
+    Housing Plan
+
+  </a>
+
+</div>
+
+
+<!-- EDUCATION -->
+
+<div class="dashboard-box">
+
+  <h3>🎓 Education</h3>
+
+  <p>
+    Education Plan:
+  </p>
+
+  <div
+    class="big"
+    id="educationStatus">
+    No
+  </div>
+
+  <a
+    href="education.html"
+    class="link-btn">
+
+    Education Plan
+
+  </a>
+
+</div>
+
+
+</div>
+
+</div>
+
+
+<script type="module">
+
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+
+
+import {
+  getAuth,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  query,
+  orderBy
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+
+const firebaseConfig = {
+
+  apiKey:
+  "AIzaSyA4O2nEtjdy9fSh66gnHH6jsbKKSWdJt4c",
+
+  authDomain:
+  "a-new-me-1a17a.firebaseapp.com",
+
+  projectId:
+  "a-new-me-1a17a",
+
+  storageBucket:
+  "a-new-me-1a17a.firebasestorage.app",
+
+  messagingSenderId:
+  "362235516132",
+
+  appId:
+  "1:362235516132:web:1465c3ec03ce1d3f4608f1"
+
+};
+
+
+const app =
+initializeApp(firebaseConfig);
+
+const auth =
+getAuth(app);
+
+const db =
+getFirestore(app);
+
+let currentUser = null;
+
+
+/* =========================
+   AUTH
+========================= */
+
+onAuthStateChanged(
+auth,
+async (user) => {
+
+  if(!user){
+
+    window.location.href =
+    "auth.html";
+
+    return;
+
+  }
+
+  currentUser = user;
+
+  loadLocalProgress();
+
+  await loadFirebaseProgress();
+
+});
+
+
+/* =========================
+   BACK
+========================= */
+
+window.goBack =
+function(){
+
+  if(document.referrer){
+
+    history.back();
+
+  }else{
+
+    window.location.href =
+    "index.html";
+
+  }
+
+};
+
+
+/* =========================
+   LOGOUT
+========================= */
+
+window.logout =
+async function(){
+
+  await signOut(auth);
+
+  window.location.href =
+  "auth.html";
+
+};
+
+
+/* =========================
+   LOCAL STORAGE DATA
+========================= */
+
+function loadLocalProgress(){
+
+  const employmentTotal =
+    Number(
+      localStorage.getItem(
+        "employmentTotal"
+      )
+    ) || 0;
+
+
+  const interviews =
+    Number(
+      localStorage.getItem(
+        "employmentInterviews"
+      )
+    ) || 0;
+
+
+  const followUps =
+    Number(
+      localStorage.getItem(
+        "employmentFollowUps"
+      )
+    ) || 0;
+
+
+  const hired =
+    Number(
+      localStorage.getItem(
+        "employmentHired"
+      )
+    ) || 0;
+
+
+  const housing =
+    localStorage.getItem(
+      "housingPlanCompleted"
+    ) || "No";
+
+
+  const education =
+    localStorage.getItem(
+      "educationPlanCompleted"
+    ) || "No";
+
+
+  const goalsCompleted =
+    Number(
+      localStorage.getItem(
+        "goalsCompleted"
+      )
+    ) || 0;
+
+
+  const goalsTotal =
+    Number(
+      localStorage.getItem(
+        "goalsTotal"
+      )
+    ) || 0;
+
+
+  const supervisionCompleted =
+    Number(
+      localStorage.getItem(
+        "supervisionRequirementsCompleted"
+      )
+    ) || 0;
+
+
+  const supervisionTotal =
+    Number(
+      localStorage.getItem(
+        "supervisionRequirementsTotal"
+      )
+    ) || 0;
+
+
+  document
+  .getElementById(
+    "employmentTotal"
+  )
+  .textContent =
+  employmentTotal;
+
+
+  document
+  .getElementById(
+    "employmentInterviews"
+  )
+  .textContent =
+  interviews;
+
+
+  document
+  .getElementById(
+    "employmentFollowUps"
+  )
+  .textContent =
+  followUps;
+
+
+  document
+  .getElementById(
+    "employmentHired"
+  )
+  .textContent =
+  hired;
+
+
+  document
+  .getElementById(
+    "housingStatus"
+  )
+  .textContent =
+  housing;
+
+
+  document
+  .getElementById(
+    "educationStatus"
+  )
+  .textContent =
+  education;
+
+
+  document
+  .getElementById(
+    "goalsProgress"
+  )
+  .textContent =
+  goalsCompleted +
+  " / " +
+  goalsTotal;
+
+
+  document
+  .getElementById(
+    "supervisionProgress"
+  )
+  .textContent =
+  supervisionCompleted +
+  " / " +
+  supervisionTotal;
+
 }
 
-if ((localStorage.getItem('educationPlanCompleted') || 'No') === 'Yes') {
-  completed++;
+
+/* =========================
+   FIREBASE DATA
+========================= */
+
+async function loadFirebaseProgress(){
+
+  await Promise.all([
+
+    loadAppointments(),
+
+    loadBarriers(),
+
+    loadDocuments()
+
+  ]);
+
+
+  calculateOverallProgress();
+
 }
 
-if (Number(localStorage.getItem('employmentTotal') || 0) > 0) {
-  completed++;
+
+/* =========================
+   APPOINTMENTS
+========================= */
+
+async function loadAppointments(){
+
+  const area =
+    document.getElementById(
+      "nextAppointment"
+    );
+
+
+  try{
+
+    const q =
+    query(
+
+      collection(
+        db,
+        "users",
+        currentUser.uid,
+        "appointments"
+      ),
+
+      orderBy("date")
+
+    );
+
+
+    const snapshot =
+      await getDocs(q);
+
+
+    const now =
+      new Date();
+
+
+    let next =
+      null;
+
+
+    snapshot.forEach(
+    (documentSnapshot) => {
+
+      const data =
+        documentSnapshot.data();
+
+
+      const apptDate =
+        new Date(data.date);
+
+
+      const status =
+        data.status ||
+        "upcoming";
+
+
+      if(
+        !next &&
+        status !== "completed" &&
+        apptDate >= now
+      ){
+
+        next = data;
+
+      }
+
+    });
+
+
+    area.innerHTML = "";
+
+
+    if(!next){
+
+      area.textContent =
+        "No upcoming appointments.";
+
+      return;
+
+    }
+
+
+    const title =
+      document.createElement("strong");
+
+
+    title.textContent =
+      next.name ||
+      "Appointment";
+
+
+    const type =
+      document.createElement("p");
+
+
+    type.textContent =
+      next.type ||
+      "Appointment";
+
+
+    const date =
+      document.createElement("p");
+
+
+    date.textContent =
+      new Date(
+        next.date
+      ).toLocaleString();
+
+
+    area.appendChild(title);
+
+    area.appendChild(type);
+
+    area.appendChild(date);
+
+
+    if(next.location){
+
+      const location =
+        document.createElement("p");
+
+
+      location.textContent =
+        "📍 " +
+        next.location;
+
+
+      area.appendChild(location);
+
+    }
+
+
+  }catch(error){
+
+    console.error(
+      "Appointment dashboard error:",
+      error
+    );
+
+
+    area.textContent =
+      "Appointments could not be loaded.";
+
+  }
+
 }
 
-const progress = Math.round((completed / 3) * 100);
 
-document.getElementById('overallProgress').innerText =
-  progress + '%';
+/* =========================
+   BARRIERS
+========================= */
+
+async function loadBarriers(){
+
+  let active = 0;
+
+
+  try{
+
+    const snapshot =
+      await getDocs(
+
+        collection(
+          db,
+          "users",
+          currentUser.uid,
+          "barriers"
+        )
+
+      );
+
+
+    snapshot.forEach(
+    (documentSnapshot) => {
+
+      const data =
+        documentSnapshot.data();
+
+
+      if(
+        (data.status || "active")
+        !== "resolved"
+      ){
+
+        active++;
+
+      }
+
+    });
+
+
+    document
+    .getElementById(
+      "activeBarriers"
+    )
+    .textContent =
+    active;
+
+
+    const message =
+      document.getElementById(
+        "barrierMessage"
+      );
+
+
+    if(active > 0){
+
+      message.textContent =
+        "You have " +
+        active +
+        " issue" +
+        (active === 1 ? "" : "s") +
+        " that may need attention.";
+
+
+      message.className =
+        "status-attention";
+
+    }else{
+
+      message.textContent =
+        "No active help requests.";
+
+
+      message.className =
+        "status-good";
+
+    }
+
+
+  }catch(error){
+
+    console.error(
+      "Barrier dashboard error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================
+   DOCUMENTS
+========================= */
+
+async function loadDocuments(){
+
+  let ready = 0;
+
+  let needed = 0;
+
+
+  try{
+
+    const snapshot =
+      await getDocs(
+
+        collection(
+          db,
+          "users",
+          currentUser.uid,
+          "documents"
+        )
+
+      );
+
+
+    snapshot.forEach(
+    (documentSnapshot) => {
+
+      const data =
+        documentSnapshot.data();
+
+
+      if(data.status === "have"){
+
+        ready++;
+
+      }else{
+
+        needed++;
+
+      }
+
+    });
+
+
+    document
+    .getElementById(
+      "documentsReady"
+    )
+    .textContent =
+    ready;
+
+
+    document
+    .getElementById(
+      "documentsNeeded"
+    )
+    .textContent =
+    needed;
+
+
+  }catch(error){
+
+    console.error(
+      "Document dashboard error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================
+   OVERALL PROGRESS
+========================= */
+
+function calculateOverallProgress(){
+
+  let completed = 0;
+
+  let total = 0;
+
+
+  /*
+  Housing
+  */
+
+  total++;
+
+  if(
+    (
+      localStorage.getItem(
+        "housingPlanCompleted"
+      ) || "No"
+    ) === "Yes"
+  ){
+
+    completed++;
+
+  }
+
+
+  /*
+  Education
+  */
+
+  total++;
+
+  if(
+    (
+      localStorage.getItem(
+        "educationPlanCompleted"
+      ) || "No"
+    ) === "Yes"
+  ){
+
+    completed++;
+
+  }
+
+
+  /*
+  Employment
+  */
+
+  total++;
+
+  if(
+    Number(
+      localStorage.getItem(
+        "employmentTotal"
+      )
+    ) > 0
+  ){
+
+    completed++;
+
+  }
+
+
+  /*
+  Goals
+  */
+
+  const goalsTotal =
+    Number(
+      localStorage.getItem(
+        "goalsTotal"
+      )
+    ) || 0;
+
+
+  const goalsCompleted =
+    Number(
+      localStorage.getItem(
+        "goalsCompleted"
+      )
+    ) || 0;
+
+
+  if(goalsTotal > 0){
+
+    total++;
+
+    if(
+      goalsCompleted >=
+      goalsTotal
+    ){
+
+      completed++;
+
+    }
+
+  }
+
+
+  /*
+  Supervision Requirements
+  */
+
+  const supervisionTotal =
+    Number(
+      localStorage.getItem(
+        "supervisionRequirementsTotal"
+      )
+    ) || 0;
+
+
+  const supervisionCompleted =
+    Number(
+      localStorage.getItem(
+        "supervisionRequirementsCompleted"
+      )
+    ) || 0;
+
+
+  if(supervisionTotal > 0){
+
+    total++;
+
+    if(
+      supervisionCompleted >=
+      supervisionTotal
+    ){
+
+      completed++;
+
+    }
+
+  }
+
+
+  const progress =
+    total > 0
+    ? Math.round(
+        (completed / total) * 100
+      )
+    : 0;
+
+
+  document
+  .getElementById(
+    "overallProgress"
+  )
+  .textContent =
+  progress + "%";
+
+
+  document
+  .getElementById(
+    "progressFill"
+  )
+  .style.width =
+  progress + "%";
+
+}
 
 </script>
 
