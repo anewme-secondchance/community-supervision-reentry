@@ -94,6 +94,303 @@
 </div>
 </div>
 </div>
-<script>function goBack(){if(window.history.length>1){window.history.back();return;}window.location.href='index.html';}const ids=['legalRequirements','legalPlan','legalGoal','jobPlan','backupJob','skillGoal','careerGoal','currentHousing','rentBudget','housingBackup','depositGoal','monthlyIncome','monthlyExpenses','monthlySavings','financialGoal','transportWork','transportProbation','publicTransport','transportBackup'];function saveStabilityPlan(){const plan={};ids.forEach(id=>plan[id]=document.getElementById(id).value);localStorage.setItem('stabilityPlan',JSON.stringify(plan));savedMessage.innerText=`Stability plan saved at ${new Date().toLocaleTimeString()}.`;}function loadStabilityPlan(){const s=JSON.parse(localStorage.getItem('stabilityPlan'));if(!s)return;ids.forEach(id=>{if(s[id]!=null)document.getElementById(id).value=s[id];});savedMessage.innerText='Loaded your saved plan from this device.';}loadStabilityPlan();</script>
+<script type="module">
+
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+
+import {
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA4O2nEtjdy9fSh66gnHH6jsbKKSWdJt4c",
+  authDomain: "a-new-me-1a17a.firebaseapp.com",
+  projectId: "a-new-me-1a17a",
+  storageBucket: "a-new-me-1a17a.firebasestorage.app",
+  messagingSenderId: "362235516132",
+  appId: "1:362235516132:web:1465c3ec03ce1d3f4608f1"
+};
+
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+
+
+/* =========================
+   STABILITY FIELDS
+========================= */
+
+const ids = [
+  "legalRequirements",
+  "legalPlan",
+  "legalGoal",
+  "jobPlan",
+  "backupJob",
+  "skillGoal",
+  "careerGoal",
+  "currentHousing",
+  "rentBudget",
+  "housingBackup",
+  "depositGoal",
+  "monthlyIncome",
+  "monthlyExpenses",
+  "monthlySavings",
+  "financialGoal",
+  "transportWork",
+  "transportProbation",
+  "publicTransport",
+  "transportBackup"
+];
+
+
+/* =========================
+   AUTH
+========================= */
+
+onAuthStateChanged(auth, async (user) => {
+
+  if (!user) {
+    window.location.href = "auth.html";
+    return;
+  }
+
+  currentUser = user;
+
+  await loadStabilityPlan();
+
+});
+
+
+/* =========================
+   BACK
+========================= */
+
+window.goBack = function() {
+
+  if (document.referrer) {
+    history.back();
+  } else {
+    window.location.href = "index.html";
+  }
+
+};
+
+
+/* =========================
+   FIREBASE REFERENCE
+========================= */
+
+function stabilityRef() {
+
+  return doc(
+    db,
+    "users",
+    currentUser.uid,
+    "stability",
+    "plan"
+  );
+
+}
+
+
+/* =========================
+   SAVE STABILITY PLAN
+========================= */
+
+window.saveStabilityPlan =
+async function() {
+
+  if (!currentUser) return;
+
+  const plan = {};
+
+  ids.forEach((id) => {
+
+    plan[id] =
+      document.getElementById(id).value.trim();
+
+  });
+
+
+  /*
+    This does not decide whether the
+    person is "stable."
+
+    It only records whether they have
+    started/completed key planning fields.
+  */
+
+  const sections = {
+
+    legal:
+      Boolean(
+        plan.legalRequirements ||
+        plan.legalPlan ||
+        plan.legalGoal
+      ),
+
+    employment:
+      Boolean(
+        plan.jobPlan ||
+        plan.backupJob ||
+        plan.skillGoal ||
+        plan.careerGoal
+      ),
+
+    housing:
+      Boolean(
+        plan.currentHousing ||
+        plan.rentBudget ||
+        plan.housingBackup ||
+        plan.depositGoal
+      ),
+
+    financial:
+      Boolean(
+        plan.monthlyIncome ||
+        plan.monthlyExpenses ||
+        plan.monthlySavings ||
+        plan.financialGoal
+      ),
+
+    transportation:
+      Boolean(
+        plan.transportWork ||
+        plan.transportProbation ||
+        plan.publicTransport ||
+        plan.transportBackup
+      )
+
+  };
+
+
+  const sectionsStarted =
+    Object.values(sections)
+      .filter(Boolean)
+      .length;
+
+
+  try {
+
+    await setDoc(
+      stabilityRef(),
+      {
+        ...plan,
+
+        sections: sections,
+
+        sectionsStarted:
+          sectionsStarted,
+
+        totalSections: 5,
+
+        updatedAt:
+          new Date().toISOString()
+      },
+      {
+        merge: true
+      }
+    );
+
+
+    document.getElementById(
+      "savedMessage"
+    ).textContent =
+      "Stability plan saved.";
+
+
+  } catch (error) {
+
+    console.error(
+      "Stability plan save error:",
+      error
+    );
+
+
+    document.getElementById(
+      "savedMessage"
+    ).textContent =
+      "Stability plan could not be saved.";
+
+  }
+
+};
+
+
+/* =========================
+   LOAD STABILITY PLAN
+========================= */
+
+async function loadStabilityPlan() {
+
+  if (!currentUser) return;
+
+
+  try {
+
+    const snapshot =
+      await getDoc(
+        stabilityRef()
+      );
+
+
+    if (!snapshot.exists()) {
+      return;
+    }
+
+
+    const saved =
+      snapshot.data();
+
+
+    ids.forEach((id) => {
+
+      if (
+        saved[id] !== undefined &&
+        saved[id] !== null
+      ) {
+
+        document.getElementById(
+          id
+        ).value =
+          saved[id];
+
+      }
+
+    });
+
+
+    document.getElementById(
+      "savedMessage"
+    ).textContent =
+      "Your saved stability plan is loaded.";
+
+
+  } catch (error) {
+
+    console.error(
+      "Stability plan load error:",
+      error
+    );
+
+  }
+
+}
+
+</script>
 </body>
 </html>
