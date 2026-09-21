@@ -86,80 +86,380 @@ button {
   </div>
 
 </div>
-<script>
-const testimonialListEl = document.getElementById('testimonialList');
-const nameInputEl = document.getElementById('nameInput');
-const testimonialInputEl = document.getElementById('testimonialInput');
-const submitMsgEl = document.getElementById('submitMsg');
+<script type="module">
 
-let testimonials = [
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+
+import {
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  where,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA4O2nEtjdy9fSh66gnHH6jsbKKSWdJt4c",
+  authDomain: "a-new-me-1a17a.firebaseapp.com",
+  projectId: "a-new-me-1a17a",
+  storageBucket: "a-new-me-1a17a.firebasestorage.app",
+  messagingSenderId: "362235516132",
+  appId: "1:362235516132:web:1465c3ec03ce1d3f4608f1"
+};
+
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+
+
+const testimonialListEl =
+  document.getElementById(
+    "testimonialList"
+  );
+
+const nameInputEl =
+  document.getElementById(
+    "nameInput"
+  );
+
+const testimonialInputEl =
+  document.getElementById(
+    "testimonialInput"
+  );
+
+const submitMsgEl =
+  document.getElementById(
+    "submitMsg"
+  );
+
+
+/* =========================
+   BUILT-IN TESTIMONIALS
+========================= */
+
+const builtInTestimonials = [
+
   {
     name: "Marcus T.",
     text: "After returning home, I used A New Me to build my resume and find employment. Within two months I had a steady job and my own apartment."
   },
+
   {
     name: "Danielle R.",
     text: "The housing and ID resources helped me get back on my feet. Having everything in one place made the process much easier."
   },
+
   {
     name: "James W.",
     text: "The First 7 Days checklist helped me stay focused and organized. I was able to complete important tasks without feeling overwhelmed."
   },
+
   {
     name: "Sarah K.",
     text: "I used the education section to plan my GED and college goals. It gave me confidence that I could continue my education."
   }
+
 ];
 
-const savedTestimonials =
-  JSON.parse(localStorage.getItem('testimonials')) || [];
 
-testimonials = [...testimonials, ...savedTestimonials];
-function goBack() {
-  if (window.history.length > 1) {
-    window.history.back();
-    return;
+let approvedTestimonials = [];
+
+
+/* =========================
+   AUTH
+========================= */
+
+onAuthStateChanged(
+  auth,
+  async (user) => {
+
+    if (!user) {
+
+      window.location.href =
+        "auth.html";
+
+      return;
+
+    }
+
+    currentUser = user;
+
+    await loadTestimonials();
+
   }
-  window.location.href = 'index.html';
+);
+
+
+/* =========================
+   LOAD APPROVED
+   TESTIMONIALS
+========================= */
+
+async function loadTestimonials() {
+
+  try {
+
+    const approvedQuery =
+      query(
+        collection(
+          db,
+          "testimonials"
+        ),
+        where(
+          "status",
+          "==",
+          "approved"
+        )
+      );
+
+
+    const snapshot =
+      await getDocs(
+        approvedQuery
+      );
+
+
+    approvedTestimonials = [];
+
+
+    snapshot.forEach(
+      (documentSnapshot) => {
+
+        const data =
+          documentSnapshot.data();
+
+
+        approvedTestimonials.push({
+
+          name:
+            data.name || "Anonymous",
+
+          text:
+            data.text || ""
+
+        });
+
+      }
+    );
+
+
+    renderTestimonials();
+
+
+  } catch (error) {
+
+    console.error(
+      "Testimonials load error:",
+      error
+    );
+
+
+    /*
+      Still display the built-in
+      testimonials if Firebase
+      cannot load.
+    */
+
+    approvedTestimonials = [];
+
+    renderTestimonials();
+
+  }
+
 }
 
-function esc(v) {
-  return v
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');
-}
+
+/* =========================
+   RENDER TESTIMONIALS
+========================= */
 
 function renderTestimonials() {
-  testimonialListEl.innerHTML = '';
-  testimonials.forEach((item) => {
-    const div = document.createElement('div');
-    div.className = 'card';
-    div.innerHTML = `<div class="quote">"${esc(item.text)}"</div><div class="name">– ${esc(item.name)}</div>`;
-    testimonialListEl.appendChild(div);
-  });
-  localStorage.setItem('testimonials', JSON.stringify(testimonials));
+
+  testimonialListEl.innerHTML = "";
+
+
+  const allTestimonials = [
+    ...builtInTestimonials,
+    ...approvedTestimonials
+  ];
+
+
+  allTestimonials.forEach(
+    (item) => {
+
+      const card =
+        document.createElement(
+          "div"
+        );
+
+      card.className = "card";
+
+
+      const quote =
+        document.createElement(
+          "div"
+        );
+
+      quote.className = "quote";
+
+      quote.textContent =
+        `"${item.text}"`;
+
+
+      const name =
+        document.createElement(
+          "div"
+        );
+
+      name.className = "name";
+
+      name.textContent =
+        `– ${item.name}`;
+
+
+      card.appendChild(quote);
+
+      card.appendChild(name);
+
+      testimonialListEl.appendChild(
+        card
+      );
+
+    }
+  );
+
 }
 
-function addTestimonial() {
-  const name = nameInputEl.value.trim();
-  const text = testimonialInputEl.value.trim();
+
+/* =========================
+   SUBMIT TESTIMONIAL
+========================= */
+
+window.addTestimonial =
+async function() {
+
+  if (!currentUser) return;
+
+
+  const name =
+    nameInputEl.value.trim();
+
+
+  const text =
+    testimonialInputEl.value.trim();
+
 
   if (!name || !text) {
-    submitMsgEl.innerText = 'Please complete both fields.';
+
+    submitMsgEl.textContent =
+      "Please complete both fields.";
+
     return;
+
   }
 
-  testimonials.push({ name, text });
-  nameInputEl.value = '';
-  testimonialInputEl.value = '';
-  submitMsgEl.innerText = 'Thank you! Your testimonial was saved.';
-  renderTestimonials();
-}
 
-renderTestimonials();
+  if (name.length > 60) {
+
+    submitMsgEl.textContent =
+      "Please use a shorter name or initials.";
+
+    return;
+
+  }
+
+
+  if (text.length > 1500) {
+
+    submitMsgEl.textContent =
+      "Please shorten your testimonial.";
+
+    return;
+
+  }
+
+
+  try {
+
+    await addDoc(
+      collection(
+        db,
+        "testimonials"
+      ),
+      {
+        name: name,
+
+        text: text,
+
+        status: "pending",
+
+        submittedBy:
+          currentUser.uid,
+
+        createdAt:
+          serverTimestamp()
+      }
+    );
+
+
+    nameInputEl.value = "";
+
+    testimonialInputEl.value = "";
+
+
+    submitMsgEl.textContent =
+      "Thank you! Your testimonial was submitted for review.";
+
+
+  } catch (error) {
+
+    console.error(
+      "Testimonial submit error:",
+      error
+    );
+
+
+    submitMsgEl.textContent =
+      "Your testimonial could not be submitted.";
+
+  }
+
+};
+
+
+/* =========================
+   BACK
+========================= */
+
+window.goBack =
+function() {
+
+  if (document.referrer) {
+
+    history.back();
+
+  } else {
+
+    window.location.href =
+      "index.html";
+
+  }
+
+};
+
 </script>
 </body>
 </html>
