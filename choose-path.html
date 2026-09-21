@@ -190,52 +190,227 @@ Tell us where you are in your journey so we can personalize your experience.
 
 </div> 
 
-  <script>
-function goBack() {
-    if (window.history.length > 1) {
-        window.history.back();
+<script type="module">
+
+import {
+    initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+
+import {
+    getAuth,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+import {
+    getFirestore,
+    doc,
+    getDoc,
+    setDoc,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+
+const firebaseConfig = {
+    apiKey: "AIzaSyA4O2nEtjdy9fSh66gnHH6jsbKKSWdJt4c",
+    authDomain: "a-new-me-1a17a.firebaseapp.com",
+    projectId: "a-new-me-1a17a",
+    storageBucket: "a-new-me-1a17a.firebasestorage.app",
+    messagingSenderId: "362235516132",
+    appId: "1:362235516132:web:1465c3ec03ce1d3f4608f1"
+};
+
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+
+
+/* =========================
+   AUTH
+========================= */
+
+onAuthStateChanged(auth, async (user) => {
+
+    if (!user) {
+        window.location.href = "auth.html";
         return;
     }
 
-    window.location.href = "start-here.html";
+    currentUser = user;
+
+    await loadPath();
+
+});
+
+
+/* =========================
+   LOAD SAVED PATH
+========================= */
+
+async function loadPath() {
+
+    try {
+
+        const pathRef = doc(
+            db,
+            "users",
+            currentUser.uid,
+            "profile",
+            "path"
+        );
+
+        const snapshot = await getDoc(pathRef);
+
+        if (!snapshot.exists()) {
+            return;
+        }
+
+        const data = snapshot.data();
+
+        if (data.path) {
+
+            const savedOption =
+                document.querySelector(
+                    `input[name="path"][value="${data.path}"]`
+                );
+
+            if (savedOption) {
+                savedOption.checked = true;
+            }
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Could not load selected path:",
+            error
+        );
+
+    }
+
 }
 
-function continueApp() {
 
-    const selected = document.querySelector('input[name="path"]:checked');
+/* =========================
+   CONTINUE
+========================= */
+
+window.continueApp = async function() {
+
+    const selected =
+        document.querySelector(
+            'input[name="path"]:checked'
+        );
+
+    const message =
+        document.getElementById("message");
+
 
     if (!selected) {
-        document.getElementById("message").innerText =
+
+        message.innerText =
             "Please choose an option before continuing.";
+
         return;
+
     }
 
-    // Save the user's selected path
-    localStorage.setItem("userPath", selected.value);
 
-    // Optional: Save a readable name
+    let pathName = "";
+
+
     switch (selected.value) {
+
         case "probation":
-            localStorage.setItem("userPathName", "Probation");
+            pathName = "Probation";
             break;
 
         case "parole":
-            localStorage.setItem("userPathName", "Parole");
+            pathName = "Parole";
             break;
 
         case "release":
-            localStorage.setItem("userPathName", "Recently Released");
+            pathName = "Recently Released";
             break;
 
         case "family":
-            localStorage.setItem("userPathName", "Family / Support Person");
+            pathName = "Family / Support Person";
             break;
+
     }
 
-    // Go to your existing dashboard
-    window.location.href = "dashboard.html";
-}
-</script>
+
+    try {
+
+        message.style.color = "#1f3c88";
+
+        message.innerText =
+            "Saving your selection...";
+
+
+        await setDoc(
+            doc(
+                db,
+                "users",
+                currentUser.uid,
+                "profile",
+                "path"
+            ),
+            {
+                path: selected.value,
+                pathName: pathName,
+                updatedAt: serverTimestamp()
+            },
+            {
+                merge: true
+            }
+        );
+
+
+        window.location.href =
+            "dashboard.html";
+
+
+    } catch (error) {
+
+        console.error(
+            "Could not save selected path:",
+            error
+        );
+
+
+        message.style.color = "#b91c1c";
+
+        message.innerText =
+            "Your selection could not be saved. Please try again.";
+
+    }
+
+};
+
+
+/* =========================
+   BACK
+========================= */
+
+window.goBack = function() {
+
+    if (window.history.length > 1) {
+
+        window.history.back();
+        return;
+
+    }
+
+    window.location.href =
+        "start-here.html";
+
+};
+
+</script> 
 
 </body>
 </html>
