@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Progress Report | A New Me</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#eef2f7;
+}
+
+.app-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:#1f3c88;
+  color:white;
+  padding:15px;
+}
+
+.back-btn,
+.logout-btn{
+  background:white;
+  color:#1f3c88;
+  border:none;
+  padding:7px 14px;
+  border-radius:20px;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+.container{
+  max-width:900px;
+  margin:auto;
+  padding:20px;
+}
+
+.card{
+  background:white;
+  padding:20px;
+  border-radius:12px;
+  margin-bottom:20px;
+  box-shadow:0 4px 10px rgba(0,0,0,.08);
+}
+
+.report-title{
+  text-align:center;
+}
+
+.report-date{
+  text-align:center;
+  color:#666;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:
+    repeat(auto-fit,minmax(220px,1fr));
+  gap:15px;
+}
+
+.stat-box{
+  background:#f4f6fb;
+  padding:15px;
+  border-radius:10px;
+  text-align:center;
+}
+
+.big{
+  font-size:30px;
+  font-weight:bold;
+  color:#1f3c88;
+}
+
+.good{
+  color:#198754;
+  font-weight:bold;
+}
+
+.attention{
+  color:#b42318;
+  font-weight:bold;
+}
+
+.section-item{
+  background:#f4f6fb;
+  padding:12px;
+  border-radius:8px;
+  margin-top:10px;
+}
+
+.print-btn{
+  width:100%;
+  background:#1f3c88;
+  color:white;
+  border:none;
+  padding:12px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:bold;
+  font-size:16px;
+}
+
+.privacy-note{
+  background:#e8f0ff;
+  padding:12px;
+  border-radius:8px;
+}
+
+@media print{
+
+  body{
+    background:white;
+  }
+
+  .app-header,
+  .print-area,
+  .privacy-note{
+    display:none;
+  }
+
+  .container{
+    max-width:100%;
+    padding:0;
+  }
+
+  .card{
+    box-shadow:none;
+    border:1px solid #ddd;
+    break-inside:avoid;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app-header">
+
+  <button
+    type="button"
+    onclick="goBack()"
+    class="back-btn">
+    ← Back
+  </button>
+
+  <strong>
+    Progress Report
+  </strong>
+
+  <button
+    type="button"
+    onclick="logout()"
+    class="logout-btn">
+    Logout
+  </button>
+
+</div>
+
+
+<div class="container">
+
+<div class="card">
+
+  <h1 class="report-title">
+    A New Me
+  </h1>
+
+  <h2 class="report-title">
+    Reentry Progress Report
+  </h2>
+
+  <p
+    class="report-date"
+    id="reportDate">
+  </p>
+
+</div>
+
+
+<div class="privacy-note">
+
+  This report belongs to you.
+  Review the information before printing
+  or sharing it with anyone.
+
+</div>
+
+<br>
+
+
+<!-- SUPERVISION -->
+
+<div class="card">
+
+<h3>🛡️ Supervision Progress</h3>
+
+<div class="grid">
+
+  <div class="stat-box">
+
+    <div
+      class="big"
+      id="requirementsCompleted">
+      0
+    </div>
+
+    <div>
+      Requirements Completed
+    </div>
+
+  </div>
+
+
+  <div class="stat-box">
+
+    <div
+      class="big"
+      id="requirementsRemaining">
+      0
+    </div>
+
+    <div>
+      Requirements Remaining
+    </div>
+
+  </div>
+
+</div>
+
+
+<div id="supervisionInfo"></div>
+
+</div>
+
+
+<!-- APPOINTMENTS -->
+
+<div class="card">
+
+<h3>📅 Appointments</h3>
+
+<div class="grid">
+
+  <div class="stat-box">
+
+    <div
+      class="big"
+      id="appointmentsCompleted">
+      0
+    </div>
+
+    <div>
+      Completed
+    </div>
+
+  </div>
+
+
+  <div class="stat-box">
+
+    <div
+      class="big"
+      id="appointmentsUpcoming">
+      0
+    </div>
+
+    <div>
+      Upcoming
+    </div>
+
+  </div>
+
+
+  <div class="stat-box">
+
+    <div
+      class="big"
+      id="appointmentsAttention">
+      0
+    </div>
+
+    <div>
+      Need Attention
+    </div>
+
+  </div>
+
+</div>
+
+<div id="nextAppointment"></div>
+
+</div>
+
+
+<!-- HELP REQUESTS -->
+
+<div class="card">
+
+<h3>🆘 Support & Barriers</h3>
+
+<div class="grid">
+
+  <div class="stat-box">
+
+    <div
+      class="big"
+      id="activeBarriers">
+      0
+    </div>
+
+    <div>
+      Active Help Requests
+    </div>
+
+  </div>
+
+
+  <div class="stat-box">
+
+    <div
+      class="big"
+      id="resolvedBarriers">
+      0
+    </div>
+
+    <div>
+      Resolved
+    </div>
+
+  </div>
+
+</div>
+
+<p id="barrierMessage"></p>
+
+</div>
+
+
+<!-- DOCUMENTS -->
+
+<div class="card">
+
+<h3>📁 Proof & Documents</h3>
+
+<div class="grid">
+
+  <div class="stat-box">
+
+    <div
+      class="big"
+      id="documentsReady">
+      0
+    </div>
+
+    <div>
+      Documents Ready
+    </div>
+
+  </div>
+
+
+  <div class="stat-box">
+
+    <div
+      class="big"
+      id="documentsNeeded">
+      0
+    </div>
+
+    <div>
+      Still Needed
+    </div>
+
+  </div>
+
+</div>
+
+</div>
+
+
+<!-- GOALS -->
+
+<div class="card">
+
+<h3>🎯 Goals</h3>
+
+<div class="grid">
+
+  <div class="stat-box">
+
+    <div
+      class="big"
+      id="goalsCompleted">
+      0
+    </div>
+
+    <div>
+      Completed
+    </div>
+
+  </div>
+
+
+  <div class="stat-box">
+
+    <div
+      class="big"
+      id="goalsRemaining">
+      0
+    </div>
+
+    <div>
+      Remaining
+    </div>
+
+  </div>
+
+</div>
+
+</div>
+
+
+<!-- EMPLOYMENT -->
+
+<div class="card">
+
+<h3>💼 Employment Progress</h3>
+
+<div class="grid">
+
+  <div class="stat-box">
+
+    <div
+      class="big"
+      id="applications">
+      0
+    </div>
+
+    <div>
+      Applications
+    </div>
+
+  </div>
+
+
+  <div class="stat-box">
+
+    <div
+      class="big"
+      id="interviews">
+      0
+    </div>
+
+    <div>
+      Interviews
+    </div>
+
+  </div>
+
+
+  <div class="stat-box">
+
+    <div
+      class="big"
+      id="hired">
+      0
+    </div>
+
+    <div>
+      Hired
+    </div>
+
+  </div>
+
+</div>
+
+</div>
+
+
+<!-- STABILITY -->
+
+<div class="card">
+
+<h3>🏠 Stability</h3>
+
+<p>
+Housing Plan:
+<strong id="housingStatus">
+No
+</strong>
+</p>
+
+<p>
+Education Plan:
+<strong id="educationStatus">
+No
+</strong>
+</p>
+
+</div>
+
+
+<!-- PRINT -->
+
+<div class="card print-area">
+
+<button
+type="button"
+class="print-btn"
+onclick="window.print()">
+
+🖨️ Print / Save Progress Report
+
+</button>
+
+</div>
+
+</div>
+
+
+<script type="module">
+
+import {
+  initializeApp
+} from
+"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+
+
+import {
+  getAuth,
+  onAuthStateChanged,
+  signOut
+} from
+"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  doc,
+  getDoc
+} from
+"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+
+const firebaseConfig = {
+
+  apiKey:
+  "AIzaSyA4O2nEtjdy9fSh66gnHH6jsbKKSWdJt4c",
+
+  authDomain:
+  "a-new-me-1a17a.firebaseapp.com",
+
+  projectId:
+  "a-new-me-1a17a",
+
+  storageBucket:
+  "a-new-me-1a17a.firebasestorage.app",
+
+  messagingSenderId:
+  "362235516132",
+
+  appId:
+  "1:362235516132:web:1465c3ec03ce1d3f4608f1"
+
+};
+
+
+const app =
+initializeApp(firebaseConfig);
+
+const auth =
+getAuth(app);
+
+const db =
+getFirestore(app);
+
+let currentUser = null;
+
+
+/* =====================
+   REPORT DATE
+===================== */
+
+document
+.getElementById("reportDate")
+.textContent =
+"Report generated: " +
+new Date().toLocaleDateString();
+
+
+/* =====================
+   AUTH
+===================== */
+
+onAuthStateChanged(
+auth,
+async(user)=>{
+
+  if(!user){
+
+    window.location.href =
+    "auth.html";
+
+    return;
+
+  }
+
+  currentUser = user;
+
+  loadLocalData();
+
+  await Promise.all([
+
+    loadSupervision(),
+
+    loadAppointments(),
+
+    loadBarriers(),
+
+    loadDocuments()
+
+  ]);
+
+});
+
+
+/* =====================
+   BACK
+===================== */
+
+window.goBack =
+function(){
+
+  if(document.referrer){
+
+    history.back();
+
+  }else{
+
+    window.location.href =
+    "dashboard.html";
+
+  }
+
+};
+
+
+/* =====================
+   LOGOUT
+===================== */
+
+window.logout =
+async function(){
+
+  await signOut(auth);
+
+  window.location.href =
+  "auth.html";
+
+};
+
+
+/* =====================
+   LOCAL DATA
+===================== */
+
+function loadLocalData(){
+
+  const goalsTotal =
+    Number(
+      localStorage.getItem(
+        "goalsTotal"
+      )
+    ) || 0;
+
+
+  const goalsCompleted =
+    Number(
+      localStorage.getItem(
+        "goalsCompleted"
+      )
+    ) || 0;
+
+
+  document
+  .getElementById(
+    "goalsCompleted"
+  )
+  .textContent =
+  goalsCompleted;
+
+
+  document
+  .getElementById(
+    "goalsRemaining"
+  )
+  .textContent =
+  Math.max(
+    goalsTotal -
+    goalsCompleted,
+    0
+  );
+
+
+  document
+  .getElementById(
+    "applications"
+  )
+  .textContent =
+  localStorage.getItem(
+    "employmentTotal"
+  ) || 0;
+
+
+  document
+  .getElementById(
+    "interviews"
+  )
+  .textContent =
+  localStorage.getItem(
+    "employmentInterviews"
+  ) || 0;
+
+
+  document
+  .getElementById(
+    "hired"
+  )
+  .textContent =
+  localStorage.getItem(
+    "employmentHired"
+  ) || 0;
+
+
+  document
+  .getElementById(
+    "housingStatus"
+  )
+  .textContent =
+  localStorage.getItem(
+    "housingPlanCompleted"
+  ) || "No";
+
+
+  document
+  .getElementById(
+    "educationStatus"
+  )
+  .textContent =
+  localStorage.getItem(
+    "educationPlanCompleted"
+  ) || "No";
+
+}
+
+
+/* =====================
+   SUPERVISION
+===================== */
+
+async function loadSupervision(){
+
+  try{
+
+    const mainRef =
+      doc(
+        db,
+        "users",
+        currentUser.uid,
+        "supervision",
+        "main"
+      );
+
+
+    const mainSnapshot =
+      await getDoc(mainRef);
+
+
+    const info =
+      document.getElementById(
+        "supervisionInfo"
+      );
+
+
+    if(mainSnapshot.exists()){
+
+      const data =
+        mainSnapshot.data();
+
+
+      if(data.type){
+
+        const type =
+          document.createElement("p");
+
+        type.textContent =
+          "Supervision Type: " +
+          data.type;
+
+        info.appendChild(type);
+
+      }
+
+
+      if(data.nextReport){
+
+        const report =
+          document.createElement("p");
+
+        report.textContent =
+          "Next Reporting Date: " +
+          formatDate(
+            data.nextReport
+          );
+
+        info.appendChild(report);
+
+      }
+
+
+      if(
+        Number(
+          data.communityServiceRequired
+        ) > 0
+      ){
+
+        const hours =
+          document.createElement("p");
+
+        hours.textContent =
+          "Community Service: " +
+          (
+            Number(
+              data.communityServiceCompleted
+            ) || 0
+          ) +
+          " of " +
+          data.communityServiceRequired +
+          " hours completed";
+
+        info.appendChild(hours);
+
+      }
+
+    }
+
+
+    const snapshot =
+      await getDocs(
+
+        collection(
+          db,
+          "users",
+          currentUser.uid,
+          "supervisionRequirements"
+        )
+
+      );
+
+
+    let completed = 0;
+
+    let remaining = 0;
+
+
+    snapshot.forEach(
+      (documentSnapshot)=>{
+
+        const data =
+          documentSnapshot.data();
+
+
+        if(data.completed){
+
+          completed++;
+
+        }else{
+
+          remaining++;
+
+        }
+
+      });
+
+
+    document
+    .getElementById(
+      "requirementsCompleted"
+    )
+    .textContent =
+    completed;
+
+
+    document
+    .getElementById(
+      "requirementsRemaining"
+    )
+    .textContent =
+    remaining;
+
+
+  }catch(error){
+
+    console.error(
+      "Supervision report error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =====================
+   APPOINTMENTS
+===================== */
+
+async function loadAppointments(){
+
+  try{
+
+    const snapshot =
+      await getDocs(
+
+        collection(
+          db,
+          "users",
+          currentUser.uid,
+          "appointments"
+        )
+
+      );
+
+
+    const now =
+      new Date();
+
+
+    let completed = 0;
+
+    let upcoming = 0;
+
+    let attention = 0;
+
+    let next = null;
+
+
+    snapshot.forEach(
+      (documentSnapshot)=>{
+
+        const data =
+          documentSnapshot.data();
+
+
+        const date =
+          new Date(
+            data.date
+          );
+
+
+        if(
+          data.status ===
+          "completed"
+        ){
+
+          completed++;
+
+        }else if(
+          date < now
+        ){
+
+          attention++;
+
+        }else{
+
+          upcoming++;
+
+
+          if(
+            !next ||
+            date <
+            new Date(next.date)
+          ){
+
+            next = data;
+
+          }
+
+        }
+
+      });
+
+
+    document
+    .getElementById(
+      "appointmentsCompleted"
+    )
+    .textContent =
+    completed;
+
+
+    document
+    .getElementById(
+      "appointmentsUpcoming"
+    )
+    .textContent =
+    upcoming;
+
+
+    document
+    .getElementById(
+      "appointmentsAttention"
+    )
+    .textContent =
+    attention;
+
+
+    const nextArea =
+      document.getElementById(
+        "nextAppointment"
+      );
+
+
+    if(next){
+
+      const box =
+        document.createElement("div");
+
+      box.className =
+        "section-item";
+
+
+      const heading =
+        document.createElement("strong");
+
+      heading.textContent =
+        "Next Appointment: " +
+        (
+          next.name ||
+          "Appointment"
+        );
+
+
+      const date =
+        document.createElement("p");
+
+      date.textContent =
+        new Date(
+          next.date
+        ).toLocaleString();
+
+
+      box.appendChild(
+        heading
+      );
+
+      box.appendChild(
+        date
+      );
+
+
+      nextArea.appendChild(
+        box
+      );
+
+    }
+
+
+  }catch(error){
+
+    console.error(
+      "Appointment report error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =====================
+   BARRIERS
+===================== */
+
+async function loadBarriers(){
+
+  try{
+
+    const snapshot =
+      await getDocs(
+
+        collection(
+          db,
+          "users",
+          currentUser.uid,
+          "barriers"
+        )
+
+      );
+
+
+    let active = 0;
+
+    let resolved = 0;
+
+
+    snapshot.forEach(
+      (documentSnapshot)=>{
+
+        const data =
+          documentSnapshot.data();
+
+
+        if(
+          data.status ===
+          "resolved"
+        ){
+
+          resolved++;
+
+        }else{
+
+          active++;
+
+        }
+
+      });
+
+
+    document
+    .getElementById(
+      "activeBarriers"
+    )
+    .textContent =
+    active;
+
+
+    document
+    .getElementById(
+      "resolvedBarriers"
+    )
+    .textContent =
+    resolved;
+
+
+    const message =
+      document.getElementById(
+        "barrierMessage"
+      );
+
+
+    if(active > 0){
+
+      message.textContent =
+        "There are currently " +
+        active +
+        " support need" +
+        (
+          active === 1
+          ? ""
+          : "s"
+        ) +
+        " being tracked.";
+
+
+      message.className =
+        "attention";
+
+    }else{
+
+      message.textContent =
+        "No active support needs are currently recorded.";
+
+
+      message.className =
+        "good";
+
+    }
+
+
+  }catch(error){
+
+    console.error(
+      "Barrier report error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =====================
+   DOCUMENTS
+===================== */
+
+async function loadDocuments(){
+
+  try{
+
+    const snapshot =
+      await getDocs(
+
+        collection(
+          db,
+          "users",
+          currentUser.uid,
+          "documents"
+        )
+
+      );
+
+
+    let ready = 0;
+
+    let needed = 0;
+
+
+    snapshot.forEach(
+      (documentSnapshot)=>{
+
+        const data =
+          documentSnapshot.data();
+
+
+        if(
+          data.status ===
+          "have"
+        ){
+
+          ready++;
+
+        }else{
+
+          needed++;
+
+        }
+
+      });
+
+
+    document
+    .getElementById(
+      "documentsReady"
+    )
+    .textContent =
+    ready;
+
+
+    document
+    .getElementById(
+      "documentsNeeded"
+    )
+    .textContent =
+    needed;
+
+
+  }catch(error){
+
+    console.error(
+      "Document report error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =====================
+   DATE FORMAT
+===================== */
+
+function formatDate(value){
+
+  if(!value){
+    return "";
+  }
+
+  const parts =
+    value.split("-");
+
+  if(parts.length !== 3){
+    return value;
+  }
+
+  return (
+    parts[1] +
+    "/" +
+    parts[2] +
+    "/" +
+    parts[0]
+  );
+
+}
+
+</script>
+
+</body>
+</html>
