@@ -240,67 +240,336 @@ Texas RioGrande Legal Aid<br>
 
 </div>
 
-<script>
+<script type="module">
 
-function goBack(){
-window.location.href="index.html";
-}
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 
-function toggleExpunge(){
-const steps=document.getElementById("expungeSteps");
+import {
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-if(steps.style.display==="none"){
-steps.style.display="block";
-}else{
-steps.style.display="none";
-}
-}
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-function checkEligibility(){
 
-const outcome=document.getElementById("outcome").value;
-const result=document.getElementById("eligibilityResult");
-
-if(outcome==="Dismissed"||outcome==="Not Guilty"||outcome==="No-Billed"){
-result.innerText="✅ You may qualify for Expungement.";
-}
-else if(outcome==="Deferred Adjudication"){
-result.innerText="⚠ You may qualify for Non-Disclosure.";
-}
-else if(outcome==="Convicted"){
-result.innerText="❌ Expungement usually not available for convictions.";
-}
-else{
-result.innerText="Please select your case outcome.";
-}
-
-}
-
-function saveLegal(){
-
-const data={
-county:document.getElementById("county").value,
-charge:document.getElementById("charge").value,
-outcome:document.getElementById("outcome").value,
-notes:document.getElementById("notes").value
+const firebaseConfig = {
+  apiKey: "AIzaSyA4O2nEtjdy9fSh66gnHH6jsbKKSWdJt4c",
+  authDomain: "a-new-me-1a17a.firebaseapp.com",
+  projectId: "a-new-me-1a17a",
+  storageBucket: "a-new-me-1a17a.firebasestorage.app",
+  messagingSenderId: "362235516132",
+  appId: "1:362235516132:web:1465c3ec03ce1d3f4608f1"
 };
 
-localStorage.setItem("legalPlan",JSON.stringify(data));
 
-document.getElementById("saveMessage").innerText="Saved ✓";
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+
+
+/* =========================
+   AUTH
+========================= */
+
+onAuthStateChanged(auth, async (user) => {
+
+  if (!user) {
+    window.location.href = "auth.html";
+    return;
+  }
+
+  currentUser = user;
+
+  await loadLegalPlan();
+
+});
+
+
+/* =========================
+   FIREBASE REFERENCE
+========================= */
+
+function legalRef() {
+
+  return doc(
+    db,
+    "users",
+    currentUser.uid,
+    "legal",
+    "plan"
+  );
 
 }
 
-window.onload=function(){
 
-const saved=JSON.parse(localStorage.getItem("legalPlan"));
+/* =========================
+   EXPUNGEMENT INFORMATION
+========================= */
 
-if(saved){
-document.getElementById("county").value=saved.county||"";
-document.getElementById("charge").value=saved.charge||"";
-document.getElementById("outcome").value=saved.outcome||"";
-document.getElementById("notes").value=saved.notes||"";
+window.toggleExpunge =
+function() {
+
+  const steps =
+    document.getElementById(
+      "expungeSteps"
+    );
+
+
+  if (steps.style.display === "none") {
+
+    steps.style.display = "block";
+
+  } else {
+
+    steps.style.display = "none";
+
+  }
+
+};
+
+
+/* =========================
+   ELIGIBILITY SCREEN
+========================= */
+
+window.checkEligibility =
+function() {
+
+  const outcome =
+    document.getElementById(
+      "outcome"
+    ).value;
+
+
+  const result =
+    document.getElementById(
+      "eligibilityResult"
+    );
+
+
+  if (
+    outcome === "Dismissed" ||
+    outcome === "Not Guilty" ||
+    outcome === "No-Billed"
+  ) {
+
+    result.textContent =
+      "Based on the case outcome selected, expunction may be worth exploring. Eligibility depends on the full case history and Texas law.";
+
+  }
+
+  else if (
+    outcome ===
+    "Deferred Adjudication"
+  ) {
+
+    result.textContent =
+      "Based on the case outcome selected, an order of nondisclosure may be worth exploring. Eligibility depends on the offense and full case history.";
+
+  }
+
+  else if (
+    outcome === "Convicted"
+  ) {
+
+    result.textContent =
+      "A conviction can affect which record-clearing options are available. Review your specific case with a qualified legal resource.";
+
+  }
+
+  else {
+
+    result.textContent =
+      "Please select your case outcome.";
+
+  }
+
+};
+
+
+/* =========================
+   SAVE LEGAL PLAN
+========================= */
+
+window.saveLegal =
+async function() {
+
+  if (!currentUser) return;
+
+
+  const data = {
+
+    county:
+      document.getElementById(
+        "county"
+      ).value.trim(),
+
+    charge:
+      document.getElementById(
+        "charge"
+      ).value.trim(),
+
+    outcome:
+      document.getElementById(
+        "outcome"
+      ).value,
+
+    notes:
+      document.getElementById(
+        "notes"
+      ).value.trim()
+
+  };
+
+
+  try {
+
+    await setDoc(
+      legalRef(),
+      {
+        ...data,
+
+        started:
+          Boolean(
+            data.county ||
+            data.charge ||
+            data.outcome ||
+            data.notes
+          ),
+
+        updatedAt:
+          new Date().toISOString()
+      },
+      {
+        merge: true
+      }
+    );
+
+
+    document.getElementById(
+      "saveMessage"
+    ).textContent =
+      "Saved ✓";
+
+
+  } catch (error) {
+
+    console.error(
+      "Legal plan save error:",
+      error
+    );
+
+
+    document.getElementById(
+      "saveMessage"
+    ).textContent =
+      "Legal information could not be saved.";
+
+  }
+
+};
+
+
+/* =========================
+   LOAD LEGAL PLAN
+========================= */
+
+async function loadLegalPlan() {
+
+  if (!currentUser) return;
+
+
+  try {
+
+    const snapshot =
+      await getDoc(
+        legalRef()
+      );
+
+
+    if (!snapshot.exists()) {
+      return;
+    }
+
+
+    const saved =
+      snapshot.data();
+
+
+    document.getElementById(
+      "county"
+    ).value =
+      saved.county || "";
+
+
+    document.getElementById(
+      "charge"
+    ).value =
+      saved.charge || "";
+
+
+    document.getElementById(
+      "outcome"
+    ).value =
+      saved.outcome || "";
+
+
+    document.getElementById(
+      "notes"
+    ).value =
+      saved.notes || "";
+
+
+    document.getElementById(
+      "saveMessage"
+    ).textContent =
+      "Your saved legal plan is loaded.";
+
+
+  } catch (error) {
+
+    console.error(
+      "Legal plan load error:",
+      error
+    );
+
+
+    document.getElementById(
+      "saveMessage"
+    ).textContent =
+      "Legal information could not be loaded.";
+
+  }
+
 }
+
+
+/* =========================
+   BACK
+========================= */
+
+window.goBack =
+function() {
+
+  if (document.referrer) {
+
+    history.back();
+
+  } else {
+
+    window.location.href =
+      "index.html";
+
+  }
 
 };
 
