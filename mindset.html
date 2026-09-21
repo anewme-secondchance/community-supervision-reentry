@@ -87,145 +87,700 @@ button{background:#1f3c88;color:#fff;border:none;padding:8px 14px;border-radius:
 
 </div>
 
-<script>
-document.addEventListener("DOMContentLoaded", function () {
+<script type="module">
 
-const el = id => document.getElementById(id);
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 
-let data = JSON.parse(localStorage.getItem('mindsetData')) || {
-r1:'',r2:'',r3:'',gratitude:'',goal90:'',
-streak:0,lastCheckDate:null,
-soberCurrent:0,soberLongest:0,soberTotal:0,lastSoberDate:null
+import {
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA4O2nEtjdy9fSh66gnHH6jsbKKSWdJt4c",
+  authDomain: "a-new-me-1a17a.firebaseapp.com",
+  projectId: "a-new-me-1a17a",
+  storageBucket: "a-new-me-1a17a.firebasestorage.app",
+  messagingSenderId: "362235516132",
+  appId: "1:362235516132:web:1465c3ec03ce1d3f4608f1"
 };
 
-function save(){
-localStorage.setItem('mindsetData', JSON.stringify(data));
-localStorage.setItem('mindsetBackup', JSON.stringify(data));
-updateProgressStats();
-}
 
-// 🔐 streak lock
-function enforce(){
-if(!data.lastCheckDate) return;
-const diff = Math.floor((new Date() - new Date(data.lastCheckDate))/(1000*60*60*24));
-if(diff > 1){
-data.streak = 0;
-}
-}
-enforce();
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-// restore inputs
-['r1','r2','r3','gratitude','goal90'].forEach(id=>{
-el(id).value = data[id];
-el(id).addEventListener('input', ()=>{
-data[id] = el(id).value;
-save();
-runAI();
+const el = id =>
+  document.getElementById(id);
+
+let currentUser = null;
+
+let data = {
+  r1: "",
+  r2: "",
+  r3: "",
+  gratitude: "",
+  goal90: "",
+  streak: 0,
+  lastCheckDate: null,
+  soberCurrent: 0,
+  soberLongest: 0,
+  soberTotal: 0,
+  lastSoberDate: null
+};
+
+
+/* =========================
+   AUTH
+========================= */
+
+onAuthStateChanged(auth, async (user) => {
+
+  if (!user) {
+    window.location.href = "auth.html";
+    return;
+  }
+
+  currentUser = user;
+
+  await loadMindset();
+
+  setupInputs();
+  enforceStreak();
+  updateScreen();
+  newAffirmation();
+
 });
-});
 
-// load numbers
-el('streakCount').innerText = data.streak;
-el('soberCurrent').innerText = data.soberCurrent;
-el('soberLongest').innerText = data.soberLongest;
-el('soberTotal').innerText = data.soberTotal;
 
-// streak
-function updateStreak(){
-const today = new Date().toDateString();
-if(data.lastCheckDate === today) return alert("Already checked in today");
-data.streak++;
-data.lastCheckDate = today;
-el('streakCount').innerText = data.streak;
-save();
+/* =========================
+   FIREBASE REFERENCE
+========================= */
+
+function mindsetRef() {
+
+  return doc(
+    db,
+    "users",
+    currentUser.uid,
+    "mindset",
+    "main"
+  );
+
 }
 
-// sobriety
-function markSoberDay(){
-const today = new Date().toDateString();
-if(data.lastSoberDate === today) return;
-data.soberCurrent++;
-data.soberTotal++;
-data.lastSoberDate = today;
-if(data.soberCurrent > data.soberLongest) data.soberLongest = data.soberCurrent;
 
-el('soberCurrent').innerText = data.soberCurrent;
-el('soberLongest').innerText = data.soberLongest;
-el('soberTotal').innerText = data.soberTotal;
+/* =========================
+   LOAD
+========================= */
 
-el('soberMessage').innerText = "Keep going. You got this.";
-updateBar();
-save();
+async function loadMindset() {
+
+  try {
+
+    const snapshot =
+      await getDoc(
+        mindsetRef()
+      );
+
+
+    if (snapshot.exists()) {
+
+      data = {
+        ...data,
+        ...snapshot.data()
+      };
+
+    }
+
+  } catch (error) {
+
+    console.error(
+      "Mindset load error:",
+      error
+    );
+
+  }
+
 }
 
-// reset
-function resetSobriety(){
-if(confirm("Reset?")){
-data.soberCurrent = 0;
-data.lastSoberDate = null;
-el('soberCurrent').innerText = 0;
-save();
-updateBar();
-}
-}
 
-// progress bar
-function updateBar(){
-el('progressFill').style.width = Math.min((data.soberCurrent/90)*100,100)+'%';
-}
+/* =========================
+   SAVE
+========================= */
 
-// 📊 progress dashboard
-function updateProgressStats(){
-const percent = Math.min((data.soberCurrent/90)*100,100).toFixed(0);
-el('progressStats').innerText =
-`Streak: ${data.streak} days | Sobriety: ${percent}% of 90-day goal`;
-}
+async function saveMindset() {
 
-// 🧠 AI
-function runAI(){
-const text = (data.r1+" "+data.r2+" "+data.r3).toLowerCase();
+  if (!currentUser) return;
 
-let msg = "Keep showing up. That’s how everything changes.";
+  try {
 
-if(text.includes("stress")||text.includes("hard")) msg="You’re handling pressure. That builds strength.";
-if(text.includes("good")||text.includes("progress")) msg="Momentum is building. Stay locked in.";
-if(text.includes("fail")) msg="Failure is feedback. Reset and move forward.";
+    await setDoc(
+      mindsetRef(),
+      {
+        ...data,
+        updatedAt:
+          new Date().toISOString()
+      },
+      {
+        merge: true
+      }
+    );
 
-el('affirmationText').innerText = msg;
+  } catch (error) {
+
+    console.error(
+      "Mindset save error:",
+      error
+    );
+
+  }
+
 }
 
-// affirmations
-const affirmations=[
-'I am not my past. I am building my future.',
-'Consistency beats intensity.',
-'Progress, not perfection.'
+
+/* =========================
+   INPUTS
+========================= */
+
+function setupInputs() {
+
+  const inputIds = [
+    "r1",
+    "r2",
+    "r3",
+    "gratitude",
+    "goal90"
+  ];
+
+
+  inputIds.forEach((id) => {
+
+    el(id).value =
+      data[id] || "";
+
+
+    el(id).addEventListener(
+      "input",
+      () => {
+
+        data[id] =
+          el(id).value;
+
+        saveMindset();
+
+        runAI();
+
+      }
+    );
+
+  });
+
+}
+
+
+/* =========================
+   CONSISTENCY STREAK
+========================= */
+
+function enforceStreak() {
+
+  if (!data.lastCheckDate) {
+    return;
+  }
+
+
+  const last =
+    new Date(
+      data.lastCheckDate + "T00:00:00"
+    );
+
+
+  const today =
+    new Date();
+
+  today.setHours(
+    0, 0, 0, 0
+  );
+
+
+  const difference =
+    Math.floor(
+      (today - last) /
+      (1000 * 60 * 60 * 24)
+    );
+
+
+  if (difference > 1) {
+
+    data.streak = 0;
+
+    saveMindset();
+
+  }
+
+}
+
+
+window.updateStreak =
+async function() {
+
+  const today =
+    getLocalDate();
+
+
+  if (
+    data.lastCheckDate === today
+  ) {
+
+    alert(
+      "Already checked in today."
+    );
+
+    return;
+
+  }
+
+
+  if (data.lastCheckDate) {
+
+    const last =
+      new Date(
+        data.lastCheckDate +
+        "T00:00:00"
+      );
+
+
+    const current =
+      new Date(
+        today + "T00:00:00"
+      );
+
+
+    const difference =
+      Math.round(
+        (current - last) /
+        (1000 * 60 * 60 * 24)
+      );
+
+
+    if (difference === 1) {
+
+      data.streak =
+        Number(data.streak || 0) + 1;
+
+    } else {
+
+      data.streak = 1;
+
+    }
+
+  } else {
+
+    data.streak = 1;
+
+  }
+
+
+  data.lastCheckDate =
+    today;
+
+
+  await saveMindset();
+
+  updateScreen();
+
+};
+
+
+/* =========================
+   SOBRIETY TRACKER
+========================= */
+
+window.markSoberDay =
+async function() {
+
+  const today =
+    getLocalDate();
+
+
+  if (
+    data.lastSoberDate === today
+  ) {
+
+    el("soberMessage").textContent =
+      "Today has already been recorded.";
+
+    return;
+
+  }
+
+
+  /*
+    If the previous sober check-in
+    was yesterday, continue the streak.
+
+    If days were skipped, start a new
+    current streak at 1.
+  */
+
+  if (data.lastSoberDate) {
+
+    const last =
+      new Date(
+        data.lastSoberDate +
+        "T00:00:00"
+      );
+
+
+    const current =
+      new Date(
+        today + "T00:00:00"
+      );
+
+
+    const difference =
+      Math.round(
+        (current - last) /
+        (1000 * 60 * 60 * 24)
+      );
+
+
+    if (difference === 1) {
+
+      data.soberCurrent =
+        Number(
+          data.soberCurrent || 0
+        ) + 1;
+
+    } else {
+
+      data.soberCurrent = 1;
+
+    }
+
+  } else {
+
+    data.soberCurrent = 1;
+
+  }
+
+
+  data.soberTotal =
+    Number(
+      data.soberTotal || 0
+    ) + 1;
+
+
+  data.lastSoberDate =
+    today;
+
+
+  if (
+    data.soberCurrent >
+    Number(
+      data.soberLongest || 0
+    )
+  ) {
+
+    data.soberLongest =
+      data.soberCurrent;
+
+  }
+
+
+  await saveMindset();
+
+  updateScreen();
+
+
+  el("soberMessage").textContent =
+    "Keep going. You got this.";
+
+};
+
+
+/* =========================
+   RESET SOBRIETY
+========================= */
+
+window.resetSobriety =
+async function() {
+
+  const confirmed =
+    confirm(
+      "Reset the current sobriety streak?"
+    );
+
+
+  if (!confirmed) {
+    return;
+  }
+
+
+  data.soberCurrent = 0;
+  data.lastSoberDate = null;
+
+
+  await saveMindset();
+
+  updateScreen();
+
+
+  el("soberMessage").textContent =
+    "Current streak reset. Your previous progress is still recorded.";
+
+};
+
+
+/* =========================
+   UPDATE SCREEN
+========================= */
+
+function updateScreen() {
+
+  el("streakCount").textContent =
+    Number(
+      data.streak || 0
+    );
+
+
+  el("soberCurrent").textContent =
+    Number(
+      data.soberCurrent || 0
+    );
+
+
+  el("soberLongest").textContent =
+    Number(
+      data.soberLongest || 0
+    );
+
+
+  el("soberTotal").textContent =
+    Number(
+      data.soberTotal || 0
+    );
+
+
+  updateBar();
+  updateProgressStats();
+
+}
+
+
+/* =========================
+   PROGRESS BAR
+========================= */
+
+function updateBar() {
+
+  const percent =
+    Math.min(
+      (
+        Number(
+          data.soberCurrent || 0
+        ) / 90
+      ) * 100,
+      100
+    );
+
+
+  el(
+    "progressFill"
+  ).style.width =
+    percent + "%";
+
+}
+
+
+/* =========================
+   PROGRESS OVERVIEW
+========================= */
+
+function updateProgressStats() {
+
+  const percent =
+    Math.min(
+      (
+        Number(
+          data.soberCurrent || 0
+        ) / 90
+      ) * 100,
+      100
+    ).toFixed(0);
+
+
+  el("progressStats").textContent =
+    "Streak: " +
+    Number(data.streak || 0) +
+    " days | Sobriety: " +
+    percent +
+    "% of 90-day goal";
+
+}
+
+
+/* =========================
+   AFFIRMATION RESPONSE
+========================= */
+
+function runAI() {
+
+  const text =
+    (
+      data.r1 +
+      " " +
+      data.r2 +
+      " " +
+      data.r3
+    ).toLowerCase();
+
+
+  let message =
+    "Keep showing up. That’s how everything changes.";
+
+
+  if (
+    text.includes("stress") ||
+    text.includes("hard")
+  ) {
+
+    message =
+      "You’re handling pressure. That builds strength.";
+
+  }
+
+
+  if (
+    text.includes("good") ||
+    text.includes("progress")
+  ) {
+
+    message =
+      "Momentum is building. Stay locked in.";
+
+  }
+
+
+  if (
+    text.includes("fail")
+  ) {
+
+    message =
+      "Failure is feedback. Reset and move forward.";
+
+  }
+
+
+  el(
+    "affirmationText"
+  ).textContent =
+    message;
+
+}
+
+
+/* =========================
+   AFFIRMATIONS
+========================= */
+
+const affirmations = [
+
+  "I am not my past. I am building my future.",
+
+  "Consistency beats intensity.",
+
+  "Progress, not perfection."
+
 ];
 
-function newAffirmation(){
-el('affirmationText').innerText =
-affirmations[Math.floor(Math.random()*affirmations.length)];
+
+window.newAffirmation =
+function() {
+
+  const random =
+    Math.floor(
+      Math.random() *
+      affirmations.length
+    );
+
+
+  el(
+    "affirmationText"
+  ).textContent =
+    affirmations[random];
+
+};
+
+
+/* =========================
+   LOCAL DATE
+========================= */
+
+function getLocalDate() {
+
+  const now =
+    new Date();
+
+
+  const year =
+    now.getFullYear();
+
+
+  const month =
+    String(
+      now.getMonth() + 1
+    ).padStart(2, "0");
+
+
+  const day =
+    String(
+      now.getDate()
+    ).padStart(2, "0");
+
+
+  return (
+    year +
+    "-" +
+    month +
+    "-" +
+    day
+  );
+
 }
 
-// back
-function goBack(){
-if(history.length>1) history.back();
-else location.href='index.html';
-}
 
-// init
-newAffirmation();
-updateBar();
-updateProgressStats();
+/* =========================
+   BACK
+========================= */
 
-// expose
-window.updateStreak=updateStreak;
-window.markSoberDay=markSoberDay;
-window.resetSobriety=resetSobriety;
-window.newAffirmation=newAffirmation;
-window.goBack=goBack;
+window.goBack =
+function() {
 
-});
+  if (document.referrer) {
+
+    history.back();
+
+  } else {
+
+    window.location.href =
+      "index.html";
+
+  }
+
+};
+
 </script>
-
 </body>
 </html>
