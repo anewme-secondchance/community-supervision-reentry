@@ -12,7 +12,7 @@ body {
   background: #eef2f7;
 }
 
-.app-header {
+.app-header 
   display: flex;
   align-items: center;
   background: #1f3c88;
@@ -194,143 +194,683 @@ Hiring depends on charge type, time passed, and company policy.
 
 </div>
 
-<script>
-function goBack() {
-  if (window.history.length > 1) {
-    window.history.back();
+<script type="module">
+
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+
+import {
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  orderBy
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA4O2nEtjdy9fSh66gnHH6jsbKKSWdJt4c",
+  authDomain: "a-new-me-1a17a.firebaseapp.com",
+  projectId: "a-new-me-1a17a",
+  storageBucket: "a-new-me-1a17a.firebasestorage.app",
+  messagingSenderId: "362235516132",
+  appId: "1:362235516132:web:1465c3ec03ce1d3f4608f1"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+let applications = [];
+
+
+/* =========================
+   AUTH
+========================= */
+
+onAuthStateChanged(auth, async (user) => {
+
+  if (!user) {
+    window.location.href = "auth.html";
     return;
   }
-  window.location.href = 'index.html';
+
+  currentUser = user;
+
+  await loadPractice();
+  await loadApplications();
+
+});
+
+
+/* =========================
+   BACK
+========================= */
+
+window.goBack = function() {
+
+  if (document.referrer) {
+    history.back();
+  } else {
+    window.location.href = "index.html";
+  }
+
+};
+
+
+/* =========================
+   LOAD APPLICATIONS
+========================= */
+
+async function loadApplications() {
+
+  if (!currentUser) return;
+
+  try {
+
+    const q = query(
+      collection(
+        db,
+        "users",
+        currentUser.uid,
+        "applications"
+      ),
+      orderBy("createdAt", "desc")
+    );
+
+    const snapshot = await getDocs(q);
+
+    applications = [];
+
+    snapshot.forEach((documentSnapshot) => {
+
+      applications.push({
+        id: documentSnapshot.id,
+        ...documentSnapshot.data()
+      });
+
+    });
+
+    renderApplications();
+
+  } catch (error) {
+
+    console.error(
+      "Application load error:",
+      error
+    );
+
+    document.getElementById(
+      "trackerStatus"
+    ).textContent =
+      "Applications could not be loaded.";
+
+  }
+
 }
 
-function getApplications() {
-  return JSON.parse(localStorage.getItem('applications')) || [];
-}
 
-function setApplications(applications) {
-  localStorage.setItem('applications', JSON.stringify(applications));
-}
+/* =========================
+   ADD APPLICATION
+========================= */
 
-function addApplication() {
-  const company = document.getElementById('company').value.trim();
-  const position = document.getElementById('position').value.trim();
-  const date = document.getElementById('date').value;
-  const status = document.getElementById('status').value;
+window.addApplication = async function() {
+
+  if (!currentUser) return;
+
+  const company =
+    document.getElementById("company").value.trim();
+
+  const position =
+    document.getElementById("position").value.trim();
+
+  const date =
+    document.getElementById("date").value;
+
+  const status =
+    document.getElementById("status").value;
+
 
   if (!company || !position) {
-    document.getElementById('trackerStatus').innerText = 'Add both company and position before saving.';
+
+    document.getElementById(
+      "trackerStatus"
+    ).textContent =
+      "Add both company and position before saving.";
+
     return;
   }
 
-  const applications = getApplications();
-  applications.push({
-    company,
-    position,
-    date,
-    status,
-    timestamp: Date.now()
-  });
 
-  setApplications(applications);
+  try {
 
-  document.getElementById('company').value = '';
-  document.getElementById('position').value = '';
-  document.getElementById('date').value = '';
-  document.getElementById('trackerStatus').innerText = 'Application saved.';
+    await addDoc(
+      collection(
+        db,
+        "users",
+        currentUser.uid,
+        "applications"
+      ),
+      {
+        company: company,
+        position: position,
+        date: date,
+        status: status,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    );
 
-  renderApplications();
-}
+
+    document.getElementById("company").value = "";
+    document.getElementById("position").value = "";
+    document.getElementById("date").value = "";
+
+    document.getElementById(
+      "trackerStatus"
+    ).textContent =
+      "Application saved.";
+
+
+    await loadApplications();
+
+  } catch (error) {
+
+    console.error(
+      "Application save error:",
+      error
+    );
+
+    document.getElementById(
+      "trackerStatus"
+    ).textContent =
+      "Application could not be saved.";
+
+  }
+
+};
+
+
+/* =========================
+   RENDER APPLICATIONS
+========================= */
 
 function renderApplications() {
-  const list = document.getElementById('applicationsList');
-  list.innerHTML = '';
 
-  const applications = getApplications();
+  const list =
+    document.getElementById(
+      "applicationsList"
+    );
 
-  applications.forEach((app, index) => {
+  list.innerHTML = "";
+
+
+  if (applications.length === 0) {
+
+    const empty =
+      document.createElement("p");
+
+    empty.textContent =
+      "No job applications added yet.";
+
+    list.appendChild(empty);
+
+  }
+
+
+  applications.forEach((application) => {
+
     const now = Date.now();
-    const sevenDays = 7 * 24 * 60 * 60 * 1000;
-    const showReminder = (now - app.timestamp) > sevenDays && app.status === 'Applied';
 
-    const card = document.createElement('div');
-    card.className = 'tracker-item';
+    const sevenDays =
+      7 * 24 * 60 * 60 * 1000;
 
-    card.innerHTML = `
-      <strong>${escapeHtml(app.company)}</strong><br>
-      Position: ${escapeHtml(app.position)}<br>
-      Date Applied: ${escapeHtml(app.date || 'N/A')}<br>
-      Status: ${escapeHtml(app.status)}<br>
-      ${showReminder ? '<p style="color:red;"><strong>⚠ Time to Follow Up!</strong></p>' : ''}
-      <button type="button" onclick="updateStatus(${index}, 'Followed Up')">Mark Followed Up</button>
-      <button type="button" onclick="deleteApplication(${index})">Delete</button>
-    `;
+    const createdTime =
+      application.createdAt
+        ? new Date(
+            application.createdAt
+          ).getTime()
+        : now;
+
+    const showReminder =
+      (now - createdTime) > sevenDays &&
+      application.status === "Applied";
+
+
+    const card =
+      document.createElement("div");
+
+    card.className =
+      "tracker-item";
+
+
+    const company =
+      document.createElement("strong");
+
+    company.textContent =
+      application.company || "Company";
+
+
+    const position =
+      document.createElement("div");
+
+    position.textContent =
+      "Position: " +
+      (application.position || "N/A");
+
+
+    const date =
+      document.createElement("div");
+
+    date.textContent =
+      "Date Applied: " +
+      (application.date || "N/A");
+
+
+    const status =
+      document.createElement("div");
+
+    status.textContent =
+      "Status: " +
+      (application.status || "Applied");
+
+
+    card.appendChild(company);
+    card.appendChild(position);
+    card.appendChild(date);
+    card.appendChild(status);
+
+
+    if (showReminder) {
+
+      const reminder =
+        document.createElement("p");
+
+      reminder.style.color = "red";
+
+      reminder.textContent =
+        "⚠ Time to Follow Up!";
+
+      card.appendChild(reminder);
+
+    }
+
+
+    const followButton =
+      document.createElement("button");
+
+    followButton.type = "button";
+
+    followButton.textContent =
+      "Mark Followed Up";
+
+    followButton.onclick = function() {
+
+      updateApplicationStatus(
+        application.id,
+        "Followed Up"
+      );
+
+    };
+
+
+    const interviewButton =
+      document.createElement("button");
+
+    interviewButton.type = "button";
+
+    interviewButton.textContent =
+      "Interview";
+
+    interviewButton.onclick = function() {
+
+      updateApplicationStatus(
+        application.id,
+        "Interview Scheduled"
+      );
+
+    };
+
+
+    const hiredButton =
+      document.createElement("button");
+
+    hiredButton.type = "button";
+
+    hiredButton.textContent =
+      "Hired";
+
+    hiredButton.onclick = function() {
+
+      updateApplicationStatus(
+        application.id,
+        "Hired"
+      );
+
+    };
+
+
+    const deleteButton =
+      document.createElement("button");
+
+    deleteButton.type = "button";
+
+    deleteButton.textContent =
+      "Delete";
+
+    deleteButton.onclick = function() {
+
+      deleteApplication(
+        application.id
+      );
+
+    };
+
+
+    card.appendChild(followButton);
+    card.appendChild(interviewButton);
+    card.appendChild(hiredButton);
+    card.appendChild(deleteButton);
 
     list.appendChild(card);
+
   });
 
-  updateEmploymentDashboard();
+
+  updateEmploymentSummary();
+
 }
 
-function updateStatus(index, newStatus) {
-  const applications = getApplications();
-  if (!applications[index]) return;
-  applications[index].status = newStatus;
-  setApplications(applications);
-  renderApplications();
+
+/* =========================
+   UPDATE STATUS
+========================= */
+
+async function updateApplicationStatus(
+  id,
+  newStatus
+) {
+
+  if (!currentUser) return;
+
+  try {
+
+    await updateDoc(
+      doc(
+        db,
+        "users",
+        currentUser.uid,
+        "applications",
+        id
+      ),
+      {
+        status: newStatus,
+        updatedAt: new Date().toISOString()
+      }
+    );
+
+    await loadApplications();
+
+  } catch (error) {
+
+    console.error(
+      "Status update error:",
+      error
+    );
+
+  }
+
 }
 
-function deleteApplication(index) {
-  const applications = getApplications();
-  applications.splice(index, 1);
-  setApplications(applications);
-  renderApplications();
+
+/* =========================
+   DELETE APPLICATION
+========================= */
+
+async function deleteApplication(id) {
+
+  if (!currentUser) return;
+
+  const confirmed =
+    confirm(
+      "Delete this job application?"
+    );
+
+  if (!confirmed) return;
+
+
+  try {
+
+    await deleteDoc(
+      doc(
+        db,
+        "users",
+        currentUser.uid,
+        "applications",
+        id
+      )
+    );
+
+    await loadApplications();
+
+  } catch (error) {
+
+    console.error(
+      "Delete application error:",
+      error
+    );
+
+  }
+
 }
 
-function savePractice() {
-  localStorage.setItem('practice1', document.getElementById('practice1').value);
-  localStorage.setItem('practice2', document.getElementById('practice2').value);
-  localStorage.setItem('practice3', document.getElementById('practice3').value);
-  document.getElementById('saveMessage').innerText = `Saved at ${new Date().toLocaleTimeString()}.`;
+
+/* =========================
+   EMPLOYMENT SUMMARY
+========================= */
+
+async function updateEmploymentSummary() {
+
+  if (!currentUser) return;
+
+  const total =
+    applications.length;
+
+  const interviews =
+    applications.filter(
+      item =>
+        item.status ===
+        "Interview Scheduled"
+    ).length;
+
+  const followedUp =
+    applications.filter(
+      item =>
+        item.status ===
+        "Followed Up"
+    ).length;
+
+  const hired =
+    applications.filter(
+      item =>
+        item.status ===
+        "Hired"
+    ).length;
+
+
+  try {
+
+    await setDoc(
+      doc(
+        db,
+        "users",
+        currentUser.uid,
+        "employment",
+        "summary"
+      ),
+      {
+        total: total,
+        interviews: interviews,
+        followedUp: followedUp,
+        hired: hired,
+        updatedAt: new Date().toISOString()
+      },
+      {
+        merge: true
+      }
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Employment summary error:",
+      error
+    );
+
+  }
+
 }
 
-function escapeHtml(value) {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');
-}
 
-function updateEmploymentDashboard() {
-  const applications = getApplications();
+/* =========================
+   INTERVIEW PRACTICE
+========================= */
 
-  const total = applications.length;
+window.savePractice = async function() {
 
-  const interviews = applications.filter(
-    app => app.status === 'Interview Scheduled'
-  ).length;
+  if (!currentUser) return;
 
-  const followedUp = applications.filter(
-    app => app.status === 'Followed Up'
-  ).length;
+  const practice1 =
+    document.getElementById(
+      "practice1"
+    ).value;
 
-  const hired = applications.filter(
-    app => app.status === 'Hired'
-  ).length;
+  const practice2 =
+    document.getElementById(
+      "practice2"
+    ).value;
 
-  localStorage.setItem('employmentTotal', total);
-  localStorage.setItem('employmentInterviews', interviews);
-  localStorage.setItem('employmentFollowUps', followedUp);
-  localStorage.setItem('employmentHired', hired);
-}
-  
-window.onload = function() {
-  document.getElementById('practice1').value = localStorage.getItem('practice1') || '';
-  document.getElementById('practice2').value = localStorage.getItem('practice2') || '';
-  document.getElementById('practice3').value = localStorage.getItem('practice3') || '';
-  renderApplications();
+  const practice3 =
+    document.getElementById(
+      "practice3"
+    ).value;
+
+
+  try {
+
+    await setDoc(
+      doc(
+        db,
+        "users",
+        currentUser.uid,
+        "employment",
+        "practice"
+      ),
+      {
+        practice1: practice1,
+        practice2: practice2,
+        practice3: practice3,
+        updatedAt: new Date().toISOString()
+      },
+      {
+        merge: true
+      }
+    );
+
+
+    document.getElementById(
+      "saveMessage"
+    ).textContent =
+      "Practice saved.";
+
+  } catch (error) {
+
+    console.error(
+      "Practice save error:",
+      error
+    );
+
+    document.getElementById(
+      "saveMessage"
+    ).textContent =
+      "Practice could not be saved.";
+
+  }
+
 };
+
+
+/* =========================
+   LOAD INTERVIEW PRACTICE
+========================= */
+
+async function loadPractice() {
+
+  if (!currentUser) return;
+
+  try {
+
+    const snapshot =
+      await getDoc(
+        doc(
+          db,
+          "users",
+          currentUser.uid,
+          "employment",
+          "practice"
+        )
+      );
+
+
+    if (!snapshot.exists()) return;
+
+
+    const data =
+      snapshot.data();
+
+
+    document.getElementById(
+      "practice1"
+    ).value =
+      data.practice1 || "";
+
+
+    document.getElementById(
+      "practice2"
+    ).value =
+      data.practice2 || "";
+
+
+    document.getElementById(
+      "practice3"
+    ).value =
+      data.practice3 || "";
+
+
+  } catch (error) {
+
+    console.error(
+      "Practice load error:",
+      error
+    );
+
+  }
+
+}
+
 </script>
 
 </body>
