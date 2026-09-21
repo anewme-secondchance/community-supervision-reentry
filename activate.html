@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Activate Program | A New Me Government</title>
+
+<style>
+:root{
+  --navy:#17345f;
+  --blue:#2457a6;
+  --light:#eef3f8;
+  --white:#ffffff;
+  --text:#1f2937;
+  --muted:#667085;
+  --border:#d8e0ea;
+  --green:#198754;
+  --red:#b42318;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:var(--light);
+  color:var(--text);
+}
+
+.header{
+  background:linear-gradient(135deg,var(--navy),var(--blue));
+  color:white;
+  text-align:center;
+  padding:24px 18px;
+}
+
+.header h1{
+  margin:0 0 6px;
+  font-size:25px;
+}
+
+.header p{
+  margin:0;
+  opacity:.92;
+}
+
+.demo-banner{
+  background:#fff3cd;
+  color:#664d03;
+  text-align:center;
+  padding:10px 15px;
+  font-size:13px;
+  font-weight:bold;
+  border-bottom:1px solid #ffe69c;
+}
+
+.container{
+  max-width:600px;
+  margin:30px auto;
+  padding:0 18px 40px;
+}
+
+.card{
+  background:white;
+  border-radius:14px;
+  padding:25px;
+  box-shadow:0 5px 18px rgba(0,0,0,.09);
+}
+
+.icon{
+  width:60px;
+  height:60px;
+  border-radius:50%;
+  background:#e8f0ff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:28px;
+  margin:0 auto 15px;
+}
+
+h2{
+  text-align:center;
+  color:var(--navy);
+  margin-bottom:8px;
+}
+
+.intro{
+  text-align:center;
+  color:var(--muted);
+  line-height:1.55;
+}
+
+label{
+  display:block;
+  font-weight:bold;
+  margin-top:20px;
+  font-size:14px;
+}
+
+input{
+  width:100%;
+  padding:14px;
+  margin-top:7px;
+  border:1px solid var(--border);
+  border-radius:8px;
+  font-size:17px;
+}
+
+input:focus{
+  outline:2px solid #b9d0f5;
+  border-color:var(--blue);
+}
+
+.code-input{
+  text-transform:uppercase;
+  text-align:center;
+  letter-spacing:2px;
+  font-weight:bold;
+}
+
+.activate-btn{
+  width:100%;
+  border:none;
+  border-radius:8px;
+  background:var(--navy);
+  color:white;
+  padding:14px;
+  margin-top:22px;
+  font-size:16px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.activate-btn:hover{
+  background:#10294d;
+}
+
+.message{
+  margin-top:16px;
+  text-align:center;
+  font-weight:bold;
+  line-height:1.5;
+}
+
+.info-box{
+  margin-top:22px;
+  padding:15px;
+  background:#f7f9fc;
+  border:1px solid var(--border);
+  border-radius:10px;
+  color:#475467;
+  font-size:13px;
+  line-height:1.55;
+}
+
+.success-box{
+  display:none;
+  margin-top:20px;
+  background:#edf8f1;
+  border:1px solid #badbcc;
+  border-radius:10px;
+  padding:18px;
+}
+
+.success-box h3{
+  color:#0f5132;
+  margin-top:0;
+}
+
+.program-row{
+  display:flex;
+  justify-content:space-between;
+  gap:15px;
+  padding:9px 0;
+  border-bottom:1px solid #dce9e1;
+}
+
+.program-row:last-child{
+  border-bottom:none;
+}
+
+.continue-btn{
+  display:none;
+  width:100%;
+  text-align:center;
+  text-decoration:none;
+  border-radius:8px;
+  background:var(--green);
+  color:white;
+  padding:14px;
+  margin-top:16px;
+  font-weight:bold;
+}
+
+.back{
+  display:block;
+  text-align:center;
+  margin-top:20px;
+  color:var(--navy);
+  text-decoration:none;
+  font-weight:bold;
+}
+
+.footer{
+  text-align:center;
+  color:var(--muted);
+  font-size:12px;
+  margin-top:25px;
+}
+</style>
+</head>
+
+<body>
+
+<header class="header">
+
+  <h1>🔐 A New Me Government</h1>
+
+  <p>
+    Program Activation
+  </p>
+
+</header>
+
+
+<div class="demo-banner">
+  DEMO MODE — This page demonstrates the client activation process.
+</div>
+
+
+<main class="container">
+
+<section class="card">
+
+  <div class="icon">
+    🔑
+  </div>
+
+  <h2>Activate Your Program</h2>
+
+  <p class="intro">
+    Enter the activation code provided by your
+    authorized officer or participating agency
+    to connect your A New Me account to your
+    government reentry program.
+  </p>
+
+
+  <label for="activationCode">
+    Activation Code
+  </label>
+
+  <input
+    type="text"
+    id="activationCode"
+    class="code-input"
+    placeholder="ANM-XXXX-XXXX"
+    maxlength="13"
+    autocomplete="off"
+  >
+
+
+  <button
+    type="button"
+    class="activate-btn"
+    onclick="activateDemoProgram()">
+    Activate Program
+  </button>
+
+
+  <div
+    id="message"
+    class="message"
+    aria-live="polite">
+  </div>
+
+
+  <div
+    id="successBox"
+    class="success-box">
+
+    <h3>
+      ✓ Demo Program Activated
+    </h3>
+
+    <div class="program-row">
+
+      <span>
+        Program
+      </span>
+
+      <strong>
+        A New Me Government
+      </strong>
+
+    </div>
+
+
+    <div class="program-row">
+
+      <span>
+        Program Length
+      </span>
+
+      <strong>
+        365 Days
+      </strong>
+
+    </div>
+
+
+    <div class="program-row">
+
+      <span>
+        Status
+      </span>
+
+      <strong>
+        Active
+      </strong>
+
+    </div>
+
+
+    <div class="program-row">
+
+      <span>
+        Day
+      </span>
+
+      <strong>
+        1 of 365
+      </strong>
+
+    </div>
+
+
+    <div class="program-row">
+
+      <span>
+        Days Remaining
+      </span>
+
+      <strong>
+        364
+      </strong>
+
+    </div>
+
+  </div>
+
+
+  <a
+    href="dashboard.html"
+    id="continueBtn"
+    class="continue-btn">
+    Continue to My Dashboard →
+  </a>
+
+
+  <div class="info-box">
+
+    <strong>How this works</strong>
+
+    <br><br>
+
+    In the full system, activation codes will be
+    created by an authorized agency or officer.
+
+    <br><br>
+
+    Once a valid code is activated, the client's
+    government-program access will begin and the
+    365-day A New Me program period will be tracked.
+
+    <br><br>
+
+    The government connection does not give an
+    officer unrestricted access to the client's
+    private A New Me information.
+
+  </div>
+
+</section>
+
+
+<a
+  href="index.html"
+  class="back">
+  ← Back to A New Me
+</a>
+
+
+<div class="footer">
+  A New Me Government — Demonstration Environment
+</div>
+
+</main>
+
+
+<script>
+
+const codeInput =
+  document.getElementById(
+    "activationCode"
+  );
+
+
+/* =========================
+   FORMAT CODE
+========================= */
+
+codeInput.addEventListener(
+  "input",
+  function(){
+
+    let value =
+      this.value
+      .toUpperCase()
+      .replace(
+        /[^A-Z0-9]/g,
+        ""
+      );
+
+
+    if(
+      value.startsWith("ANM")
+    ){
+
+      value =
+        value.substring(3);
+
+    }
+
+
+    value =
+      value.substring(
+        0,
+        8
+      );
+
+
+    let formatted =
+      "ANM";
+
+
+    if(value.length > 0){
+
+      formatted +=
+        "-" +
+        value.substring(
+          0,
+          4
+        );
+
+    }
+
+
+    if(value.length > 4){
+
+      formatted +=
+        "-" +
+        value.substring(
+          4,
+          8
+        );
+
+    }
+
+
+    this.value =
+      formatted;
+
+  }
+);
+
+
+/* =========================
+   DEMO ACTIVATION
+========================= */
+
+function activateDemoProgram(){
+
+  const code =
+    codeInput.value
+    .trim()
+    .toUpperCase();
+
+
+  const message =
+    document.getElementById(
+      "message"
+    );
+
+
+  const successBox =
+    document.getElementById(
+      "successBox"
+    );
+
+
+  const continueBtn =
+    document.getElementById(
+      "continueBtn"
+    );
+
+
+  /*
+    DEMO VALIDATION ONLY.
+
+    Production activation codes must be
+    verified securely against an authorized
+    enrollment record.
+  */
+
+  const validFormat =
+    /^ANM-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
+
+
+  if(
+    !validFormat.test(code)
+  ){
+
+    message.style.color =
+      "#b42318";
+
+
+    message.textContent =
+      "Enter a valid demo code in the format ANM-XXXX-XXXX.";
+
+
+    successBox.style.display =
+      "none";
+
+
+    continueBtn.style.display =
+      "none";
+
+
+    return;
+
+  }
+
+
+  /*
+    DEMO SESSION ONLY.
+
+    This does not create a real government
+    enrollment or supervision record.
+  */
+
+  sessionStorage.setItem(
+    "demoGovernmentProgram",
+    "active"
+  );
+
+
+  sessionStorage.setItem(
+    "demoActivationCode",
+    code
+  );
+
+
+  sessionStorage.setItem(
+    "demoProgramDay",
+    "1"
+  );
+
+
+  message.style.color =
+    "#198754";
+
+
+  message.textContent =
+    "Demo activation successful.";
+
+
+  successBox.style.display =
+    "block";
+
+
+  continueBtn.style.display =
+    "block";
+
+}
+
+</script>
+
+</body>
+</html>
