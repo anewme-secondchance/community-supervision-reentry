@@ -151,8 +151,68 @@ body{
 
 
 <div class="container">
+<!-- GOVERNMENT PROGRAM -->
 
+<div
+  class="card"
+  id="governmentProgramCard"
+  style="display:none;">
 
+  <h2>🏛️ My A New Me Government Program</h2>
+
+  <p>
+    Program Status:
+    <strong id="governmentProgramStatus">
+      Active
+    </strong>
+  </p>
+
+  <p>
+    Program Day:
+    <strong id="governmentProgramDay">
+      1 of 365
+    </strong>
+  </p>
+
+  <p>
+    Days Remaining:
+    <strong id="governmentDaysRemaining">
+      364
+    </strong>
+  </p>
+
+  <div class="progress-bar">
+
+    <div
+      class="progress-fill"
+      id="governmentProgressFill">
+    </div>
+
+  </div>
+
+  <p id="governmentProgramMessage">
+    Your A New Me Government program is active.
+  </p>
+
+  <a
+    href="supervision.html"
+    class="link-btn">
+    My Supervision
+  </a>
+
+  <a
+    href="appointments.html"
+    class="link-btn">
+    Appointments
+  </a>
+
+  <a
+    href="documents.html"
+    class="link-btn">
+    Proof & Documents
+  </a>
+
+</div>
 <!-- OVERALL PROGRESS -->
 
 <div class="card">
@@ -453,6 +513,8 @@ import {
   getFirestore,
   collection,
   getDocs,
+  doc,
+  getDoc,
   query,
   orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -492,7 +554,24 @@ getFirestore(app);
 
 let currentUser = null;
 
+const dashboardData = {
 
+  employmentTotal: 0,
+  employmentInterviews: 0,
+  employmentFollowUps: 0,
+  employmentHired: 0,
+
+  housingCompleted: false,
+
+  educationCompleted: false,
+
+  goalsCompleted: 0,
+  goalsTotal: 0,
+
+  supervisionCompleted: 0,
+  supervisionTotal: 0
+
+};
 /* =========================
    AUTH
 ========================= */
@@ -510,11 +589,11 @@ async (user) => {
 
   }
 
-  currentUser = user;
+currentUser = user;
 
-  loadLocalProgress();
+loadGovernmentProgram();
 
-  await loadFirebaseProgress();
+await loadFirebaseProgress(); 
 
 });
 
@@ -553,164 +632,131 @@ async function(){
   "auth.html";
 
 };
-
-
 /* =========================
-   LOCAL STORAGE DATA
+   GOVERNMENT PROGRAM DEMO
 ========================= */
 
-function loadLocalProgress(){
+function loadGovernmentProgram(){
 
-  const employmentTotal =
+  const card =
+    document.getElementById(
+      "governmentProgramCard"
+    );
+
+
+  if(!card){
+    return;
+  }
+
+
+  const active =
+    sessionStorage.getItem(
+      "demoGovernmentProgram"
+    );
+
+
+  if(active !== "active"){
+
+    card.style.display =
+      "none";
+
+    return;
+
+  }
+
+
+  card.style.display =
+    "block";
+
+
+  let day =
     Number(
-      localStorage.getItem(
-        "employmentTotal"
+      sessionStorage.getItem(
+        "demoProgramDay"
       )
-    ) || 0;
+    ) || 1;
 
 
-  const interviews =
-    Number(
-      localStorage.getItem(
-        "employmentInterviews"
-      )
-    ) || 0;
+  if(day < 1){
+    day = 1;
+  }
 
 
-  const followUps =
-    Number(
-      localStorage.getItem(
-        "employmentFollowUps"
-      )
-    ) || 0;
+  if(day > 365){
+    day = 365;
+  }
 
 
-  const hired =
-    Number(
-      localStorage.getItem(
-        "employmentHired"
-      )
-    ) || 0;
+  const daysRemaining =
+    Math.max(
+      365 - day,
+      0
+    );
 
 
-  const housing =
-    localStorage.getItem(
-      "housingPlanCompleted"
-    ) || "No";
-
-
-  const education =
-    localStorage.getItem(
-      "educationPlanCompleted"
-    ) || "No";
-
-
-  const goalsCompleted =
-    Number(
-      localStorage.getItem(
-        "goalsCompleted"
-      )
-    ) || 0;
-
-
-  const goalsTotal =
-    Number(
-      localStorage.getItem(
-        "goalsTotal"
-      )
-    ) || 0;
-
-
-  const supervisionCompleted =
-    Number(
-      localStorage.getItem(
-        "supervisionRequirementsCompleted"
-      )
-    ) || 0;
-
-
-  const supervisionTotal =
-    Number(
-      localStorage.getItem(
-        "supervisionRequirementsTotal"
-      )
-    ) || 0;
+  const progress =
+    Math.round(
+      (day / 365) * 100
+    );
 
 
   document
-  .getElementById(
-    "employmentTotal"
-  )
-  .textContent =
-  employmentTotal;
+    .getElementById(
+      "governmentProgramDay"
+    )
+    .textContent =
+      day + " of 365";
 
 
   document
-  .getElementById(
-    "employmentInterviews"
-  )
-  .textContent =
-  interviews;
+    .getElementById(
+      "governmentDaysRemaining"
+    )
+    .textContent =
+      daysRemaining;
 
 
   document
-  .getElementById(
-    "employmentFollowUps"
-  )
-  .textContent =
-  followUps;
+    .getElementById(
+      "governmentProgressFill"
+    )
+    .style.width =
+      progress + "%";
 
 
-  document
-  .getElementById(
-    "employmentHired"
-  )
-  .textContent =
-  hired;
+  const status =
+    document.getElementById(
+      "governmentProgramStatus"
+    );
 
 
-  document
-  .getElementById(
-    "housingStatus"
-  )
-  .textContent =
-  housing;
+  const message =
+    document.getElementById(
+      "governmentProgramMessage"
+    );
 
 
-  document
-  .getElementById(
-    "educationStatus"
-  )
-  .textContent =
-  education;
+  if(day >= 365){
+
+    status.textContent =
+      "Program Period Complete";
 
 
-  document
-  .getElementById(
-    "goalsProgress"
-  )
-  .textContent =
-  goalsCompleted +
-  " / " +
-  goalsTotal;
+    message.textContent =
+      "Your 365-day A New Me Government program period is complete.";
+
+  }else{
+
+    status.textContent =
+      "Active";
 
 
-  document
-  .getElementById(
-    "supervisionProgress"
-  )
-  .textContent =
-  supervisionCompleted +
-  " / " +
-  supervisionTotal;
+    message.textContent =
+      "Keep working through your program requirements and support plan.";
+
+  }
 
 }
-
-
-/* =========================
-   FIREBASE DATA
-========================= */
-
 async function loadFirebaseProgress(){
 
   await Promise.all([
@@ -719,7 +765,17 @@ async function loadFirebaseProgress(){
 
     loadBarriers(),
 
-    loadDocuments()
+    loadDocuments(),
+
+    loadGoals(),
+
+    loadEmployment(),
+
+    loadHousing(),
+
+    loadEducation(),
+
+    loadSupervision()
 
   ]);
 
@@ -727,6 +783,7 @@ async function loadFirebaseProgress(){
   calculateOverallProgress();
 
 }
+
 
 
 /* =========================
@@ -1046,6 +1103,276 @@ async function loadDocuments(){
 
 }
 
+/* =========================
+   GOALS
+========================= */
+
+async function loadGoals(){
+
+  try{
+
+    const ref = doc(
+      db,
+      "users",
+      currentUser.uid,
+      "goalSettings",
+      "main"
+    );
+
+    const snapshot = await getDoc(ref);
+
+    if(snapshot.exists()){
+
+      const data = snapshot.data();
+
+      dashboardData.goalsCompleted =
+        Number(data.goalsCompleted) || 0;
+
+      dashboardData.goalsTotal =
+        Number(data.goalsTotal) || 0;
+
+    }
+
+    document
+      .getElementById("goalsProgress")
+      .textContent =
+        dashboardData.goalsCompleted +
+        " / " +
+        dashboardData.goalsTotal;
+
+  }catch(error){
+
+    console.error(
+      "Goals dashboard error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================
+   EMPLOYMENT
+========================= */
+
+async function loadEmployment(){
+
+  try{
+
+    const ref = doc(
+      db,
+      "users",
+      currentUser.uid,
+      "employment",
+      "summary"
+    );
+
+    const snapshot = await getDoc(ref);
+
+    if(snapshot.exists()){
+
+      const data = snapshot.data();
+
+      dashboardData.employmentTotal =
+        Number(data.total) || 0;
+
+      dashboardData.employmentInterviews =
+        Number(data.interviews) || 0;
+
+      dashboardData.employmentFollowUps =
+        Number(data.followedUp) || 0;
+
+      dashboardData.employmentHired =
+        Number(data.hired) || 0;
+
+    }
+
+    document
+      .getElementById("employmentTotal")
+      .textContent =
+        dashboardData.employmentTotal;
+
+    document
+      .getElementById("employmentInterviews")
+      .textContent =
+        dashboardData.employmentInterviews;
+
+    document
+      .getElementById("employmentFollowUps")
+      .textContent =
+        dashboardData.employmentFollowUps;
+
+    document
+      .getElementById("employmentHired")
+      .textContent =
+        dashboardData.employmentHired;
+
+  }catch(error){
+
+    console.error(
+      "Employment dashboard error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================
+   HOUSING
+========================= */
+
+async function loadHousing(){
+
+  try{
+
+    const ref = doc(
+      db,
+      "users",
+      currentUser.uid,
+      "housing",
+      "plan"
+    );
+
+    const snapshot = await getDoc(ref);
+
+    if(snapshot.exists()){
+
+      dashboardData.housingCompleted =
+        snapshot.data().completed === true;
+
+    }
+
+    document
+      .getElementById("housingStatus")
+      .textContent =
+        dashboardData.housingCompleted
+          ? "Yes"
+          : "No";
+
+  }catch(error){
+
+    console.error(
+      "Housing dashboard error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================
+   EDUCATION
+========================= */
+
+async function loadEducation(){
+
+  try{
+
+    const ref = doc(
+      db,
+      "users",
+      currentUser.uid,
+      "education",
+      "plan"
+    );
+
+    const snapshot = await getDoc(ref);
+
+    if(snapshot.exists()){
+
+      dashboardData.educationCompleted =
+        snapshot.data().completed === true;
+
+    }
+
+    document
+      .getElementById("educationStatus")
+      .textContent =
+        dashboardData.educationCompleted
+          ? "Yes"
+          : "No";
+
+  }catch(error){
+
+    console.error(
+      "Education dashboard error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================
+   SUPERVISION
+========================= */
+
+async function loadSupervision(){
+
+  try{
+
+    const snapshot = await getDocs(
+
+      collection(
+        db,
+        "users",
+        currentUser.uid,
+        "supervisionRequirements"
+      )
+
+    );
+
+    let total = 0;
+    let completed = 0;
+
+    snapshot.forEach(
+      (documentSnapshot) => {
+
+        const data =
+          documentSnapshot.data();
+
+        total++;
+
+        if(
+          data.completed === true ||
+          data.status === "completed"
+        ){
+
+          completed++;
+
+        }
+
+      }
+    );
+
+    dashboardData.supervisionTotal =
+      total;
+
+    dashboardData.supervisionCompleted =
+      completed;
+
+    document
+      .getElementById("supervisionProgress")
+      .textContent =
+        completed +
+        " / " +
+        total;
+
+  }catch(error){
+
+    console.error(
+      "Supervision dashboard error:",
+      error
+    );
+
+  }
+
+}
 
 /* =========================
    OVERALL PROGRESS
@@ -1054,134 +1381,58 @@ async function loadDocuments(){
 function calculateOverallProgress(){
 
   let completed = 0;
-
   let total = 0;
 
 
-  /*
-  Housing
-  */
-
+  // Housing
   total++;
 
-  if(
-    (
-      localStorage.getItem(
-        "housingPlanCompleted"
-      ) || "No"
-    ) === "Yes"
-  ){
-
+  if(dashboardData.housingCompleted){
     completed++;
-
   }
 
 
-  /*
-  Education
-  */
-
+  // Education
   total++;
 
-  if(
-    (
-      localStorage.getItem(
-        "educationPlanCompleted"
-      ) || "No"
-    ) === "Yes"
-  ){
-
+  if(dashboardData.educationCompleted){
     completed++;
-
   }
 
 
-  /*
-  Employment
-  */
-
+  // Employment
   total++;
 
-  if(
-    Number(
-      localStorage.getItem(
-        "employmentTotal"
-      )
-    ) > 0
-  ){
-
+  if(dashboardData.employmentTotal > 0){
     completed++;
-
   }
 
 
-  /*
-  Goals
-  */
-
-  const goalsTotal =
-    Number(
-      localStorage.getItem(
-        "goalsTotal"
-      )
-    ) || 0;
-
-
-  const goalsCompleted =
-    Number(
-      localStorage.getItem(
-        "goalsCompleted"
-      )
-    ) || 0;
-
-
-  if(goalsTotal > 0){
+  // Goals
+  if(dashboardData.goalsTotal > 0){
 
     total++;
 
     if(
-      goalsCompleted >=
-      goalsTotal
+      dashboardData.goalsCompleted >=
+      dashboardData.goalsTotal
     ){
-
       completed++;
-
     }
 
   }
 
 
-  /*
-  Supervision Requirements
-  */
-
-  const supervisionTotal =
-    Number(
-      localStorage.getItem(
-        "supervisionRequirementsTotal"
-      )
-    ) || 0;
-
-
-  const supervisionCompleted =
-    Number(
-      localStorage.getItem(
-        "supervisionRequirementsCompleted"
-      )
-    ) || 0;
-
-
-  if(supervisionTotal > 0){
+  // Supervision
+  if(dashboardData.supervisionTotal > 0){
 
     total++;
 
     if(
-      supervisionCompleted >=
-      supervisionTotal
+      dashboardData.supervisionCompleted >=
+      dashboardData.supervisionTotal
     ){
-
       completed++;
-
     }
 
   }
@@ -1189,29 +1440,24 @@ function calculateOverallProgress(){
 
   const progress =
     total > 0
-    ? Math.round(
-        (completed / total) * 100
-      )
-    : 0;
+      ? Math.round(
+          (completed / total) * 100
+        )
+      : 0;
 
 
   document
-  .getElementById(
-    "overallProgress"
-  )
-  .textContent =
-  progress + "%";
+    .getElementById("overallProgress")
+    .textContent =
+      progress + "%";
 
 
   document
-  .getElementById(
-    "progressFill"
-  )
-  .style.width =
-  progress + "%";
+    .getElementById("progressFill")
+    .style.width =
+      progress + "%";
 
 }
-
 </script>
 
 </body>
