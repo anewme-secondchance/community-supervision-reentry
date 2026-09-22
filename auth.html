@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0">
+
+<title>Login | A New Me</title>
+
+<style>
+
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#eef2f7;
+  color:#222;
+}
+
+.header{
+  background:#1f3c88;
+  color:white;
+  padding:20px;
+  text-align:center;
+}
+
+.header h1{
+  margin:0;
+  font-size:28px;
+}
+
+.header p{
+  margin:6px 0 0;
+}
+
+.container{
+  max-width:450px;
+  margin:40px auto;
+  padding:20px;
+}
+
+.card{
+  background:white;
+  padding:25px;
+  border-radius:12px;
+  box-shadow:0 4px 10px rgba(0,0,0,.08);
+}
+
+.card h2{
+  color:#1f3c88;
+  text-align:center;
+  margin-top:0;
+}
+
+label{
+  display:block;
+  margin-top:15px;
+  margin-bottom:6px;
+  font-weight:bold;
+}
+
+input{
+  width:100%;
+  box-sizing:border-box;
+  padding:12px;
+  border:1px solid #ccc;
+  border-radius:8px;
+  font-size:16px;
+}
+
+.login-btn{
+  width:100%;
+  background:#1f3c88;
+  color:white;
+  border:none;
+  padding:13px;
+  border-radius:8px;
+  margin-top:20px;
+  cursor:pointer;
+  font-size:16px;
+  font-weight:bold;
+}
+
+.login-btn:hover{
+  opacity:.9;
+}
+
+.message{
+  margin-top:15px;
+  text-align:center;
+  font-weight:bold;
+}
+
+.error{
+  color:#b42318;
+}
+
+.success{
+  color:#198754;
+}
+
+.signup{
+  margin-top:20px;
+  text-align:center;
+}
+
+.signup a{
+  color:#1f3c88;
+  font-weight:bold;
+}
+
+.back-link{
+  display:block;
+  text-align:center;
+  margin-top:20px;
+  color:#1f3c88;
+  text-decoration:none;
+  font-weight:bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="header">
+
+  <h1>A New Me</h1>
+
+  <p>
+    Rebuilding. Restoring. Moving Forward.
+  </p>
+
+</div>
+
+
+<div class="container">
+
+  <div class="card">
+
+    <h2>Welcome Back</h2>
+
+    <form id="loginForm">
+
+      <label for="email">
+        Email
+      </label>
+
+      <input
+        type="email"
+        id="email"
+        autocomplete="email"
+        required>
+
+
+      <label for="password">
+        Password
+      </label>
+
+      <input
+        type="password"
+        id="password"
+        autocomplete="current-password"
+        required>
+
+
+      <button
+        type="submit"
+        class="login-btn"
+        id="loginButton">
+
+        Log In
+
+      </button>
+
+    </form>
+
+
+    <div
+      id="message"
+      class="message">
+    </div>
+
+
+    <div class="signup">
+
+      Don't have an account?
+
+      <a href="signup.html">
+        Create Account
+      </a>
+
+    </div>
+
+
+    <a
+      href="index.html"
+      class="back-link">
+
+      ← Back to A New Me
+
+    </a>
+
+  </div>
+
+</div>
+
+
+<script type="module">
+
+import {
+  initializeApp
+} from
+"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+
+
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  onAuthStateChanged
+} from
+"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+
+const firebaseConfig = {
+
+  apiKey:
+  "AIzaSyA4O2nEtjdy9fSh66gnHH6jsbKKSWdJt4c",
+
+  authDomain:
+  "a-new-me-1a17a.firebaseapp.com",
+
+  projectId:
+  "a-new-me-1a17a",
+
+  storageBucket:
+  "a-new-me-1a17a.firebasestorage.app",
+
+  messagingSenderId:
+  "362235516132",
+
+  appId:
+  "1:362235516132:web:1465c3ec03ce1d3f4608f1"
+
+};
+
+
+const app =
+  initializeApp(firebaseConfig);
+
+
+const auth =
+  getAuth(app);
+
+
+const form =
+  document.getElementById(
+    "loginForm"
+  );
+
+
+const message =
+  document.getElementById(
+    "message"
+  );
+
+
+const loginButton =
+  document.getElementById(
+    "loginButton"
+  );
+
+
+onAuthStateChanged(
+  auth,
+  (user) => {
+
+    if(user){
+
+      window.location.href =
+        "index.html";
+
+    }
+
+  }
+);
+
+
+form.addEventListener(
+  "submit",
+  async(event) => {
+
+    event.preventDefault();
+
+
+    const email =
+      document
+        .getElementById("email")
+        .value
+        .trim();
+
+
+    const password =
+      document
+        .getElementById("password")
+        .value;
+
+
+    message.textContent =
+      "Signing in...";
+
+    message.className =
+      "message";
+
+
+    loginButton.disabled =
+      true;
+
+
+    try{
+
+      await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+
+      message.textContent =
+        "Login successful.";
+
+      message.className =
+        "message success";
+
+
+      window.location.href =
+        "index.html";
+
+
+    }catch(error){
+
+      console.error(
+        "Login error:",
+        error
+      );
+
+
+      message.textContent =
+        "Email or password is incorrect.";
+
+      message.className =
+        "message error";
+
+
+      loginButton.disabled =
+        false;
+
+    }
+
+  }
+);
+
+</script>
+
+</body>
+
+</html>
