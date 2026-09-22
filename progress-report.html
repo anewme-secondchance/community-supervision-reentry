@@ -611,23 +611,28 @@ async(user)=>{
     return;
 
   }
+currentUser = user;
 
-  currentUser = user;
+await Promise.all([
 
-  loadLocalData();
+  loadSupervision(),
 
-  await Promise.all([
+  loadAppointments(),
 
-    loadSupervision(),
+  loadBarriers(),
 
-    loadAppointments(),
+  loadDocuments(),
 
-    loadBarriers(),
+  loadGoals(),
 
-    loadDocuments()
+  loadEmployment(),
 
-  ]);
+  loadHousing(),
 
+  loadEducation()
+
+]);
+ 
 });
 
 
@@ -666,100 +671,214 @@ async function(){
 
 };
 
-
 /* =====================
-   LOCAL DATA
+   GOALS
 ===================== */
 
-function loadLocalData(){
+async function loadGoals(){
 
-  const goalsTotal =
-    Number(
-      localStorage.getItem(
-        "goalsTotal"
-      )
-    ) || 0;
+  try{
 
+    const ref = doc(
+      db,
+      "users",
+      currentUser.uid,
+      "goalSettings",
+      "main"
+    );
 
-  const goalsCompleted =
-    Number(
-      localStorage.getItem(
-        "goalsCompleted"
-      )
-    ) || 0;
+    const snapshot = await getDoc(ref);
 
+    let total = 0;
+    let completed = 0;
 
-  document
-  .getElementById(
-    "goalsCompleted"
-  )
-  .textContent =
-  goalsCompleted;
+    if(snapshot.exists()){
 
+      const data = snapshot.data();
 
-  document
-  .getElementById(
-    "goalsRemaining"
-  )
-  .textContent =
-  Math.max(
-    goalsTotal -
-    goalsCompleted,
-    0
-  );
+      total =
+        Number(data.goalsTotal) || 0;
 
+      completed =
+        Number(data.goalsCompleted) || 0;
 
-  document
-  .getElementById(
-    "applications"
-  )
-  .textContent =
-  localStorage.getItem(
-    "employmentTotal"
-  ) || 0;
+    }
 
+    document
+      .getElementById("goalsCompleted")
+      .textContent =
+        completed;
 
-  document
-  .getElementById(
-    "interviews"
-  )
-  .textContent =
-  localStorage.getItem(
-    "employmentInterviews"
-  ) || 0;
+    document
+      .getElementById("goalsRemaining")
+      .textContent =
+        Math.max(
+          total - completed,
+          0
+        );
 
+  }catch(error){
 
-  document
-  .getElementById(
-    "hired"
-  )
-  .textContent =
-  localStorage.getItem(
-    "employmentHired"
-  ) || 0;
+    console.error(
+      "Goals report error:",
+      error
+    );
 
-
-  document
-  .getElementById(
-    "housingStatus"
-  )
-  .textContent =
-  localStorage.getItem(
-    "housingPlanCompleted"
-  ) || "No";
-
-
-  document
-  .getElementById(
-    "educationStatus"
-  )
-  .textContent =
-  localStorage.getItem(
-    "educationPlanCompleted"
-  ) || "No";
+  }
 
 }
 
+
+/* =====================
+   EMPLOYMENT
+===================== */
+
+async function loadEmployment(){
+
+  try{
+
+    const ref = doc(
+      db,
+      "users",
+      currentUser.uid,
+      "employment",
+      "summary"
+    );
+
+    const snapshot = await getDoc(ref);
+
+    let applications = 0;
+    let interviews = 0;
+    let hired = 0;
+
+    if(snapshot.exists()){
+
+      const data = snapshot.data();
+
+      applications =
+        Number(data.total) || 0;
+
+      interviews =
+        Number(data.interviews) || 0;
+
+      hired =
+        Number(data.hired) || 0;
+
+    }
+
+    document
+      .getElementById("applications")
+      .textContent =
+        applications;
+
+    document
+      .getElementById("interviews")
+      .textContent =
+        interviews;
+
+    document
+      .getElementById("hired")
+      .textContent =
+        hired;
+
+  }catch(error){
+
+    console.error(
+      "Employment report error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =====================
+   HOUSING
+===================== */
+
+async function loadHousing(){
+
+  try{
+
+    const ref = doc(
+      db,
+      "users",
+      currentUser.uid,
+      "housing",
+      "plan"
+    );
+
+    const snapshot = await getDoc(ref);
+
+    let completed = false;
+
+    if(snapshot.exists()){
+
+      completed =
+        snapshot.data().completed === true;
+
+    }
+
+    document
+      .getElementById("housingStatus")
+      .textContent =
+        completed ? "Yes" : "No";
+
+  }catch(error){
+
+    console.error(
+      "Housing report error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =====================
+   EDUCATION
+===================== */
+
+async function loadEducation(){
+
+  try{
+
+    const ref = doc(
+      db,
+      "users",
+      currentUser.uid,
+      "education",
+      "plan"
+    );
+
+    const snapshot = await getDoc(ref);
+
+    let completed = false;
+
+    if(snapshot.exists()){
+
+      completed =
+        snapshot.data().completed === true;
+
+    }
+
+    document
+      .getElementById("educationStatus")
+      .textContent =
+        completed ? "Yes" : "No";
+
+  }catch(error){
+
+    console.error(
+      "Education report error:",
+      error
+    );
+
+  }
+
+}
 
 /* =====================
    SUPERVISION
@@ -876,16 +995,18 @@ async function loadSupervision(){
         const data =
           documentSnapshot.data();
 
+if(
+  data.completed === true ||
+  data.status === "completed"
+){
 
-        if(data.completed){
+  completed++;
 
-          completed++;
+}else{
 
-        }else{
+  remaining++;
 
-          remaining++;
-
-        }
+}
 
       });
 
