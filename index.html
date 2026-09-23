@@ -270,12 +270,67 @@ View Resources
   Every day is a chance to rebuild. Progress over perfection.
 </div>
 
-<script>
+<script type="module">
+
+  import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+
+import {
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+
+const firebaseConfig = {
+
+  apiKey:
+  "AIzaSyA4O2nEtjdy9fSh66gnHH6jsbKKSWdJt4c",
+
+  authDomain:
+  "a-new-me-1a17a.firebaseapp.com",
+
+  projectId:
+  "a-new-me-1a17a",
+
+  storageBucket:
+  "a-new-me-1a17a.firebasestorage.app",
+
+  messagingSenderId:
+  "362235516132",
+
+  appId:
+  "1:362235516132:web:1465c3ec03ce1d3f4608f1"
+
+};
+
+
+const app =
+  initializeApp(firebaseConfig);
+
+const auth =
+  getAuth(app);
+
+
+onAuthStateChanged(
+  auth,
+  (user) => {
+
+    if(!user){
+
+      window.location.href =
+        "auth.html";
+
+    }
+
+  }
+);
+  
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('service-worker.js');
 }
 
-function shareApp() {
+window.shareApp = function() {
   const url = window.location.href;
 
   if (navigator.share) {
@@ -288,7 +343,7 @@ function shareApp() {
     navigator.clipboard.writeText(url);
     alert('Link copied!');
   }
-}
+};
 
 document.addEventListener("DOMContentLoaded", () => {
   const input = document.getElementById("mainSearch");
